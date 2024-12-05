@@ -13,6 +13,14 @@ aux_links:
 logo: /assets/CR-Formula-Logo.png
 favicon_ico: /assets/favicon.ico
 
+# Set the site parameters
+defaults:
+  - scope:
+      path: "docs" # an empty string here means all files in the project
+      type: "pages"
+    values:
+      layout: "default"
+
 # Enable or disable the site search
 # Supports true (default) or false
 search_enabled: true

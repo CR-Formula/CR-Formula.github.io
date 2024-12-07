@@ -42,18 +42,23 @@ In the same terminal run the following if you have the expected output:
 ```
 $ npm -v
 ```
+You should expect an output similar to the following: `8.x.x`
 
-5. To utilize Java in the easiest way possible download [IntelliJ](https://www.jetbrains.com/idea/download/?section=windows). Cloning a repo and initializing it within IntelliJ as an existing project will import all settings.
+### Installing `Java`
 
-    5a. You may need to create a license to do so create a JetBrains account with your `{netid}@iastate.edu` email and you should be given a free license. If you already have an account you can add your student email to it.
+1. To utilize Java in the easiest way possible download [IntelliJ](https://www.jetbrains.com/idea/download/?section=windows). Cloning a repo and initializing it within IntelliJ as an existing project will import all settings.
 
-6. To ensure your ready for development head to the repository of the project you will be working on clone it:
+    1a. You may need to create a license to do so create a JetBrains account with your `{netid}@iastate.edu` email and you should be given a free license. If you already have an account you can add your student email to it.
+
+### Installing a Project
+
+1. To ensure your ready for development head to the repository of the project you will be working on clone it:
 
 ```
 $ git clone https://github.com/CR-Formula/{repository}.git
 ```
 
-7. From here follow the steps outlined in the specific repository's Readme for any specific project requirements.
+2. From here follow the steps outlined in the specific repository's Readme for any specific project requirements.
 
 # Tips
 1. Stack overflow is your best friend. If you encounter an issue it has been reached before and there is an answer. 

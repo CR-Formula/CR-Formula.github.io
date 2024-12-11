@@ -24,7 +24,7 @@ git -v
 You should expect an output similar to the following: `git version x.xx.x`
 
 ### Install `NodeJS`
-NodeJS will allow you to develop and run front-end applications while in the processing of writing code. It also gives us NPM which will allow us to easily add packages which impliment prebuilt components to ease the process of developing our own software.
+NodeJS will allow you to develop and run front-end applications while in the processing of writing code. It also gives us NPM which will allow us to easily add packages which implement prebuilt components to ease the process of developing our own software.
 
 1. Go to the following [link](https://nodejs.org/en/download/prebuilt-installer) and download NodeJS. Make sure to select your current OS and the latest version of NodeJS should do just fine.
 

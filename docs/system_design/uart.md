@@ -18,7 +18,7 @@ UART (pronounced you-art) is a widely used serial communication protocol for sim
 ### Point-to-Point Communication
 - Designed for direct communication between two devices.
 - **Not expandable** to multiple devices.
-    - Need two new wires and another UART peripherial
+    - Need two new wires and another UART peripheral
 
 ### Frame Structure
 - Includes **start**, **stop**, and optional **parity bits** for error detection.

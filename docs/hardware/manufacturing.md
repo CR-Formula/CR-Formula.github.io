@@ -8,7 +8,7 @@ nav_order: 1
 There are a few ways to manufacture a PCB and the strategies change depending on what type of components you are using. As of CR-28/CR-29, all of the boards use primarily surface mount (SMD) components. This page will cover the manufacturing steps for through-hole, and surface mount components, as well as how to fix some common problems.
 
 # Surface Mount Device (SMD)
-Surface mount components are much smaller than through-hole options. This allows for smaller board designs and the ability to make more complex circuits. Surface mount components can be soldered many ways, including with a soldering iron, hot plate, PCB oven, or hot air rework. For inital board assembly, it is best to use a PCB oven and a board stencil. This allows easier application of solder paste, and has a much higher success rate than soldering by hand. The PCB oven on campus is in the ECE Senior Design lab (1301), if you don't have the code just talk to ETG (1331).
+Surface mount components are much smaller than through-hole options. This allows for smaller board designs and the ability to make more complex circuits. Surface mount components can be soldered many ways, including with a soldering iron, hot plate, PCB oven, or hot air rework. For initial board assembly, it is best to use a PCB oven and a board stencil. This allows easier application of solder paste, and has a much higher success rate than soldering by hand. The PCB oven on campus is in the ECE Senior Design lab (1301), if you don't have the code just talk to ETG (1331).
 **Materials Needed**
 - PCB
 - Solder paste
@@ -69,7 +69,7 @@ Surface mount components are much smaller than through-hole options. This allows
 - Hot air can be used to replace components and may be easier on smaller components.
 
 # Through Hole
-The easiest way to assemble through hole compnents is by hand. The best places to do this on campus are in Coover: the **TLA** (1313) and the **Signals Lab** (2011). It is best to use leaded solder with flux, or add flux when soldering. Follow these steps to solder a through-hole component to a PCB:
+The easiest way to assemble through hole components is by hand. The best places to do this on campus are in Coover: the **TLA** (1313) and the **Signals Lab** (2011). It is best to use leaded solder with flux, or add flux when soldering. Follow these steps to solder a through-hole component to a PCB:
 **1. Prepare the PCB and Component:**
   - Ensure the PCB is clean and free of dust or residue.
   - Insert the through-hole component leads into the designated holes on the PCB.

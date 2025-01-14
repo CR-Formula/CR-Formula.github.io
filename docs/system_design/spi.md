@@ -45,4 +45,4 @@ SPI (pronounced "spy") is a widely used synchronous serial communication protoco
 
 ## Drawbacks
 - Need an additional wire for each device
-- Can be sensative to noise
+- Can be sensitive to noise

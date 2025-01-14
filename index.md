@@ -9,3 +9,9 @@ This is the GitHub pages site used by Iowa State CR-Formula team to host the Ele
 
 # New Members
 Start by exploring the Wiki section of the part of the subsystem you are interested in and getting build environments and software setup. If you have any questions about the setup process, ask and the team will update the instructions as well. The recommended where to start should be listed on the main page of Firmware/Software/Hardware subsections.
+
+# How to Contribute
+This site is hosted on GitHub Pages and written in Markdown. This allows for the site to be maintained easily. In order to add to the Wiki, create a branch on the [repository] and make updates to the markdown files. Do you best to follow the formatting of the other pages. Once complete, create a pull request for the changes to be reviewed. Once reviewed, the changes can be merged and the site will be updated automatically.
+
+
+[repository]:(https://github.com/CR-Formula/CR-Formula.github.io)

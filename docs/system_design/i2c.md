@@ -1,7 +1,7 @@
 ---
 title: I2C
 parent: System Design
-nav_order: 2
+nav_order: 3
 ---
 
 # I²C (Inter-Integrated Circuit)

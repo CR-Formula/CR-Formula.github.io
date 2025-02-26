@@ -1,7 +1,7 @@
 ---
 title: SPI
 parent: System Design
-nav_order: 3
+nav_order: 4
 ---
 
 

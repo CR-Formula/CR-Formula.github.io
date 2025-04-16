@@ -33,6 +33,15 @@ Here is a short explanation of each of these tools:
     - `ls` -- You should see the contents of the git repo in your folder; this command lists the items in the current folder
 7. Once you have cloned the repo, you can run the command `code ./` in the top level of the repository. This will open the repository in VSCode. Once you are in VSCode, a few notifications will appear in the bottom right corner. The only one that is crucial is installing the recommended extensions.
 
+### JLink Setup (Only needed if using a JLink Debugger)
+The Segger JLink is an alternative hardware debugger to the STLink. These steps are only needed if using this debugger and not necessary for the STLink development flow.
+1. Download the Linux DEB installer for the JLink software from [their website](https://www.segger.com/downloads/jlink/). Move this file into the WSL file system through file explorer or using the `cp` or `mv` command.
+2. Once the installer is in the WSL filesystem, install it using the command `sudo dpkg -i <path/to/the/.deb_installer>` (Note: If there are missing dependencies you may have to run the command `sudo apt --fix-broken install`)
+3. Once installed, add `export PATH="/opt/SEGGER/JLink:$PATH"` to the end of `~/.bashrc` and source the file using `source ~/.bashrc`. This will add the JLink software to the PATH variable.
+4. When starting a new debug session, make sure to select the JLink debug configuration. See the `launch.json` file in the Telem repo for an example of the configuration.
+
+### Optional Extra Tips and Tricks
+1. Add `export MAKEFLAGS="-j$(nproc)"` to the end of your `.bashrc`. This will automatically use all cores during a build with the `make` command.
 
 Once you've completed these steps, you can start building and developing firmware. The best place to start will be the Microcontroller Reference Manual. Read through the section about the peripheral you are trying to work with.
 

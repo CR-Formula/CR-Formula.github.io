@@ -8,9 +8,10 @@ nav_order: 3
 
 # Hardware Selection
 ### STM32F04
+This MCU was selected for its small footprint, low power requirements, and on chip peripherals. The MCU provides a SPI bus for interfacing with the LoRa Transceiver, a direct USB interface for connecting with a host device, and GPIO pins to connect interrupts and control status LEDs. This MCU also has a built in 48 MHz crystal that allows for the use of the USB peripheral without the need for an external crystal circuit.
 
 ### CAN Transceiver
-
+In order to communicate with the CAN bus, the MCU interfaces with the TI TCAN1042 CAN Transceiver. This component was selected as it is a small package, needs very few extra components, matches the data rate requirements, and has great documentation from the manufacturer.
 
 # Hardware Design
 

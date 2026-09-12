@@ -32,7 +32,7 @@ Open **Visual Studio Code** and connect it to WSL by using the `><` icon in the 
 
 In order to compile and run programs later, we need launch instructions. Open the Explorer tab (first option on the left), right-click on an empty space in the explorer, select `New Folder...`, and name the folder `.vscode`. Inside, add a new file named `launch.json`, and paste the following inside:
 
-<details>
+<details markdown="1">
     <summary>launch.json</summary>
 
 ```json
@@ -61,6 +61,7 @@ In order to compile and run programs later, we need launch instructions. Open th
     ]
 }
 ```
+
 </details>
 
 ## Programming the Development Board
@@ -167,7 +168,7 @@ Run the code and test the blue button.
 
 Do you notice a problem? The LED starts *on*, and turns *off* when the button is pressed! This is actually common for many buttons, and we can account for the "inverted" behavior of the button in the code. Try to implement this on your own.
 
-<details>
+<details markdown="1">
     <summary>Solution</summary>
 
 ```cpp
@@ -188,13 +189,14 @@ while (1)
 ```
 
 *Alternatively, you can change both LED outputs instead of changing the button condition.*
+
 </details>
 
 ### More Concise Version
 
 There is also a more convenient way to work with the `GPIO_PinState` type. Because `GPIO_PIN_RESET` is `0` and `GPIO_PIN_SET` is `1`, you can use the `!` (not) operator to invert its value (`!0 = 1` and `!1 = 0`). As a bonus challenge, try to rewrite the code with only one button read and one LED write.
 
-<details>
+<details markdown="1">
     <summary>Solution</summary>
 
 ```cpp
@@ -207,6 +209,7 @@ while (1)
   /* USER CODE END WHILE */
 }
 ```
+
 </details>
 
 ## Example 3: Hello World!

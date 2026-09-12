@@ -1,7 +1,7 @@
 ---
 title: Debugging
 parent: Firmware
-nav_order: 3
+nav_order: 4
 ---
 
 ## Setting up the hardware

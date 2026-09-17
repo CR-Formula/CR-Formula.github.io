@@ -18,10 +18,10 @@ Once everything is installed, open **STM32CubeMX** and click the `Access To Boar
 
 When the new project opens, you should now see the chip with pins highlighted in various colors. Typically, this is where you would manually configure everything for the board, but the development boards configure everything for you – how kind of them!
 
-Anyways, it is time to save the project. While you can save it in the Windows file system, it may be more convenient to save it in WSL; otherwise, you will need to copy the generated project to WSL later anyways. To save the project from CubeMX:
+Anyways, it is time to save the project. While you can save it in the Windows file system, it may be more convenient to save it in WSL; otherwise, you will need to copy the generated project to WSL later anyways (unless using Mac). To save the project from CubeMX:
 
 - Navigate to `File` > `Save Project As...`
-- In the Folder Name section, type `\\wsl.localhost\Ubuntu\home\<USERNAME>\Repositories\DevBoardTest`
+- In the Folder Name section, type `\\wsl.localhost\Ubuntu\home\<USERNAME>\Repositories\DevBoardTest` (or anywhere if using Mac)
     - The first time you do this, you will be navigating blind because the WSL folder structure is somewhat hidden. In the future, you should be able to navigate the menu to add new projects to the `Repositories` folder.
 
 After saving the project, go to the `Project Manager` tab and change the Toolchain/IDE from `EWARM` to `Makefile`. Save the project again with `Ctrl + S`, then click `Generate Code` in the top right corner. The project should now be fully set up and ready to load into VSCode.
@@ -135,7 +135,7 @@ while (1)
 }
 ```
 
-Run the program by pressing `F5` (or by clicking the green play button in the Run and Debug tab). The green LED in the middle of the board should start slowly blinking. Now, stop the debugging session by clicking the red stop button at the top of the window. Notice the LED will keep blinking even after stopping, since the program is still running internally on the board.
+Run the program by pressing `F5` (or by clicking the green play button in the Run and Debug tab). **Do not click the play button in the top right of the screen!** The green LED in the middle of the board should start slowly blinking. Now, stop the debugging session by clicking the red stop button at the top of the window. Notice the LED will keep blinking even after stopping, since the program is still running internally on the board.
 
 Try adjusting the values for the delays and re-running the program, and see what happens to the LED.
 

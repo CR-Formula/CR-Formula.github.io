@@ -4,33 +4,37 @@ parent: Firmware
 nav_order: 1
 ---
 
-## Dev and Build Tools
+# Dev and Build Tools
 
 The Firmware for this system is developed in WSL using Arm compilers and Makefiles. To get started, follow the steps below.
 
-### STM32CubeMX
+## Note for Mac Users
+
+The instructions for Mac are in some ways simpler than Windows, but they will follow a different process. Skip the **WSL** and **USBIPD** instructions, and instead follow the prompts for **STM32CubeMX** and **Visual Studio Code** (using alternate instructions when provided). Generally, any instructions here that reference WSL can be ignored.
+
+## STM32CubeMX
 
 Install [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) either by downloading as a guest or by signing up. This tool is often helpful for setting up pins, timers, and other features of a board before actually programming the logic.
 
-### WSL (Windows Subsystem for Linux)
+## WSL (Windows Subsystem for Linux)
 
 Install WSL by opening up a Powershell terminal and running the command `wsl --install -d Ubuntu`. This command will set up WSL using an Ubuntu Linux distribution. It will ask to create a username and password to complete the setup. When typing the password, no characters will appear, which is normal; just enter your password. Once installed, you can access the Ubuntu terminal by searching for Ubuntu in Windows, or it will be available in VSCode once the setup is complete.
 
-### USBIPD
+## USBIPD
 
-Install [usbipd](https://github.com/dorssel/usbipd-win/releases) from the releases page using the `.msi` file.
+Install [usbipd](https://github.com/dorssel/usbipd-win/releases) from the releases page using the `.msi` file. See the **Passing a Device to WSL** section for usage instructions.
 
-### Visual Studio Code
+## Visual Studio Code
 
 Install VSCode for Windows by going to the [VSCode download page](https://code.visualstudio.com/download) and select the correct package for your system. Follow the directions in the installer.
 
-#### Visual Studio Code WSL Extension
+### Visual Studio Code WSL Extension
 
 We will link VSCode to WSL using the [WSL Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl). Navigate to the extensions tab on the left in VSCode and search for WSL. VSCode has [detailed instructions](https://code.visualstudio.com/docs/remote/wsl) on how to set this up and how to open a remote connection to WSL if you need additional help.
 
 Once installed, open a WSL VSCode window by using the `><` icon in the bottom left corner of the window and selecting `Connect to WSL`.
 
-#### Visual Studio Code Setup
+### Visual Studio Code Setup
 
 Next, we will install a series of build tools that are needed to compile the firmware. Open up a WSL terminal and run the following commands:
 
@@ -50,18 +54,32 @@ Here is a short explanation of each of these tools:
 
 Also, while you're at it, open `/home/<USERNAME>/.bashrc` in a text editor and add `export MAKEFLAGS="-j$(nproc)"` to the end of the file. This will automatically use all cores during a build with the `make` command to speed things up.
 
-#### Other Visual Studio Code Extensions
+### Other Visual Studio Code Extensions
 
 There are some other extensions to install and configure in order to improve your experience while programming.
 
-- [C/C++ Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools-extension-pack)
-- [Cortex-Debug](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug) (see config instructions below)
-- [Makefile Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.makefile-tools)
-- [Serial Monitor](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-serial-monitor)
+- [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) - Enables IntelliSense (code highlighting) for C
+- [Cortex-Debug](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug) - Helps compile and run projects
+- [Makefile Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.makefile-tools) - Helps with IntelliSense project structure
+- [Serial Monitor](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-serial-monitor) - UART/USART output
 
-For Cortex-Debug, you may need to specify the location of your compiler. In the settings for Cortex-Debug, find the `Gdb Path` option and select `Edit in settings.json`. Type `/usr/bin/gdb-multiarch` into the config.
+### Important: Extension Configuration
 
-## Building code
+These extensions must be configured properly to ensure they understand how to compile the project. Otherwise, false errors will appear everywhere (even though the project compiles correctly).
+
+1. Open the Command Pallete with `Ctrl + Shift + P` (or navigate to `View` > `Command Pallete...`)
+
+2. Search for `Preferences: Open Remote Settings (JSON) (WSL: Ubuntu)`
+
+3. Add the following two lines to the JSON:
+    ```json
+    {
+        "C_Cpp.default.compilerPath": "/usr/bin/arm-none-eabi-gcc",
+        "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
+    }
+    ```
+
+## Building Code
 
 In order to build the code, use Make and Makefiles. In the VSCode terminal for your project, run the command `make` in the terminal. This will build the code using the instructions in the Makefile. Make will only build files you change; if you would like to rebuild the whole project, run the command `make clean` before running `make`.
 

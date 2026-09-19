@@ -76,6 +76,7 @@ These extensions must be configured properly to ensure they understand how to co
     {
         "C_Cpp.default.compilerPath": "/usr/bin/arm-none-eabi-gcc",
         "cortex-debug.gdbPath": "/usr/bin/gdb-multiarch",
+        "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
     }
     ```
 

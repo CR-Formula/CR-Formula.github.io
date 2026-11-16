@@ -33,6 +33,30 @@ An overview of what changes when you're laying out a PCB that carries high volta
 - Thermal considerations for high-voltage boards
 - Relevant industry standards
 
+### **High-Voltage PCB Design**
+[https://files.resources.altium.com/sites/default/files/uberflip_docs/file_731.pdf](https://files.resources.altium.com/sites/default/files/uberflip_docs/file_731.pdf)
+
+An Altium eBook with more hands-on layout advice for high-voltage boards: how to plan a layout that controls electric field strength, why it's worth prototyping a high-voltage design before locking in its final form factor, and practical steps for preventing arcing.
+
+**Topics covered:**
+- Planning a PCB layout around electric field strength
+- Isolating high-voltage zones from the rest of the board
+- Stepping voltage down gradually across "zones" to avoid corona/arcing
+- Arc prevention around pads and traces, including slots and voltage floating (field grading) rings
+- Why prototyping before rushing to a final form factor pays off
+
+### **PCB Design Techniques to Reduce EMI**
+[https://files.resources.altium.com/sites/default/files/uberflip_docs/file_707.pdf](https://files.resources.altium.com/sites/default/files/uberflip_docs/file_707.pdf)
+
+An Altium eBook on practical techniques for cutting electromagnetic interference (EMI) on a board, including isolating AC and DC signals, grounding mixed-signal designs properly, and keeping high-speed traces well-behaved.
+
+**Topics covered:**
+- Isolating AC and DC signals to prevent crosstalk
+- Mixed-signal grounding strategies (bus wire vs. grid vs. plane)
+- EMI shielding techniques
+- High-speed differential pair routing for signal integrity
+- Keeping high-speed traces short and direct
+
 ## Communication Protocols
 
 ### **A Basic Guide to I2C**

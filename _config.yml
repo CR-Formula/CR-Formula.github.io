@@ -60,3 +60,12 @@ nav_external_links:
     url: /pcb-explorer/
     hide_icon: true
     opens_in_new_tab: false
+
+# Callout styles used with {: .note } / {: .warning } in pages
+callouts:
+  note:
+    title: Note
+    color: blue
+  warning:
+    title: Warning
+    color: yellow

@@ -54,3 +54,9 @@ search:
 nav_enable: true
 heading_anchors_enable: true
 color_scheme: dark
+# Top-level sidebar entry for the interactive 3D PCB Explorer (a standalone page in /pcb-explorer)
+nav_external_links:
+  - title: PCB Explorer
+    url: /pcb-explorer/
+    hide_icon: true
+    opens_in_new_tab: false

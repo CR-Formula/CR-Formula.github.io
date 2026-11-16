@@ -1,5 +1,5 @@
 ---
-title: PCB Explorer (3D)
+title: About the PCB Explorer
 parent: Hardware
 nav_order: 3.5
 ---

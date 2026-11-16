@@ -36,9 +36,6 @@
   header .logo svg { width: 16px; height: 16px; }
   header h1 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: .2px; white-space: nowrap; }
   header .sub { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  header nav { margin-left: auto; display: flex; gap: 14px; font-size: 13px; white-space: nowrap; }
-  header nav a { text-decoration: none; color: var(--muted); }
-  header nav a:hover { color: var(--text); }
 
   main { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 0; }
   aside { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
@@ -170,16 +167,78 @@
     #viewport { grid-row: 1; height: 58vh; }
     aside { grid-row: 2; border-right: 0; border-top: 1px solid var(--line); }
     .tab { overflow: visible; }
-    header .sub { display: none; }
     .info { left: 8px; right: 8px; width: auto; bottom: 58px; max-height: calc(100% - 110px); }
     .explode input { width: 110px; }
     .toolbar button { padding: 6px 7px; }
     .hint { display: none; }
   }
-  @media (max-width: 480px) {
-    header nav a.wide { display: none; }
+  @media (max-width: 1150px) {
+    header nav.links a.wide { display: none; }
   }
   .noscript, .error { padding: 24px; color: var(--muted); }
+
+  /* module switcher */
+  header nav.modules { margin-left: 8px; display: flex; gap: 2px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 3px; overflow-x: auto; scrollbar-width: none; }
+  header nav.modules button { background: none; border: 0; padding: 5px 11px; border-radius: 6px; font-size: 13px; color: var(--muted); cursor: pointer; white-space: nowrap; font-weight: 550; }
+  header nav.modules button:hover { color: var(--text); }
+  header nav.modules button[aria-current="page"] { background: var(--panel-2); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+  header nav.links { margin-left: auto; display: flex; gap: 14px; font-size: 13px; white-space: nowrap; }
+  header nav.links a { text-decoration: none; color: var(--muted); }
+  header nav.links a:hover { color: var(--text); }
+  main[hidden] { display: none !important; }
+
+  /* lesson modules */
+  .lesson { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 0; }
+  .lesson-side { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 16px; min-height: 0; }
+  .lesson-kicker { font-size: 11.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); margin-bottom: 10px; font-weight: 650; }
+  .lesson-side .tour-progress span { cursor: pointer; }
+  .lesson-side .tour-body { font-size: 14px; }
+  .lesson-side .tour-body ul, .lesson-side .tour-body ol { padding-left: 20px; margin: 0 0 10px; }
+  .lesson-side .tour-body li { margin-bottom: 4px; }
+  .lesson-controls:not(:empty) { margin: 12px 0; display: grid; gap: 8px; }
+  .lesson-controls .toggle { margin: 0; }
+  .lesson-controls .calc .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .lesson-controls .search { padding: 6px 8px; font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .board-btn { width: 100%; margin-top: 4px; text-align: left; }
+  .lesson-outline { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 10px; font-size: 13px; }
+  .lesson-outline summary { cursor: pointer; color: var(--muted); }
+  .lesson-outline ol { padding-left: 22px; margin: 8px 0 0; }
+  .lesson-outline button { background: none; border: 0; padding: 3px 0; cursor: pointer; color: var(--muted); text-align: left; font-size: 13px; }
+  .lesson-outline button:hover, .lesson-outline button.cur { color: var(--text); }
+  .lesson-outline button.cur { font-weight: 650; }
+  pre { background: #0d0f13; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; font-size: 12px; line-height: 1.5; margin: 0 0 10px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; }
+  :not(pre) > code { background: #0d0f13; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+  .lesson-stage { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: radial-gradient(ellipse at 50% 35%, #1e222b 0%, #14161b 75%); }
+  .stage-svg { flex: 1; min-height: 0; padding: 12px 16px 0; }
+  .stage-svg svg { width: 100%; height: 100%; display: block; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; user-select: none; }
+  .stage-foot { display: flex; gap: 14px; align-items: flex-start; padding: 10px 16px 14px; border-top: 1px solid var(--line); background: rgba(23,26,33,.7); }
+  .stage-caption { flex: 1; font-size: 14px; line-height: 1.5; min-height: 42px; }
+  .stage-bar { display: flex; gap: 4px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 4px; flex: none; }
+  .stage-bar button { background: none; border: 0; width: 34px; height: 30px; border-radius: 6px; cursor: pointer; color: var(--text); font-size: 14px; }
+  .stage-bar button:hover { background: var(--panel-2); }
+  .stage-bar label { font-size: 12px; color: var(--muted); padding: 0 6px; display: flex; gap: 6px; align-items: center; }
+  .stage-bar select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 3px; }
+  .svg-html { color: var(--text); font-size: 15px; line-height: 1.5; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .svg-html.small { font-size: 13.5px; }
+  .svg-html p { margin: 0 0 8px; }
+  .info .module-btn { margin-top: 10px; }
+
+  @media (max-width: 860px) {
+    .lesson { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+    .lesson-stage { grid-row: 1; height: auto; }
+    .stage-svg { flex: none; aspect-ratio: 5 / 3; }
+    .lesson-side { grid-row: 2; border-right: 0; border-top: 1px solid var(--line); overflow: visible; }
+    .stage-svg { padding: 6px 4px 0; }
+    .stage-foot { flex-direction: column-reverse; gap: 8px; padding: 8px 10px 10px; }
+    .stage-caption { font-size: 13px; }
+    header { gap: 8px; padding: 0 10px; min-width: 0; }
+    header h1, header nav.links { display: none; }
+    header nav.modules { margin-left: 0; min-width: 0; flex: 0 1 auto; }
+    .lesson { grid-template-columns: minmax(0, 1fr); }
+    .lesson-side, .lesson-stage { min-width: 0; }
+    header nav.modules button { padding: 5px 8px; font-size: 12.5px; }
+  }
 </style>
 <script type="importmap">
 {
@@ -194,13 +253,18 @@
 <header>
   <div class="logo" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M2 5h4l2 2h6M2 11h6l2-2"/><circle cx="14" cy="7" r="1.2" fill="#fff"/><circle cx="2" cy="5" r="1.2" fill="#fff"/><circle cx="2" cy="11" r="1.2" fill="#fff"/></svg></div>
   <h1>PCB Explorer</h1>
-  <span class="sub">An interactive 3D guide to PCB terminology and design for first-time board designers</span>
-  <nav>
+  <nav class="modules" aria-label="Modules">
+    <button data-module="pcb" aria-current="page">PCB Basics</button>
+    <button data-module="can">CAN Bus</button>
+    <button data-module="i2c">I²C</button>
+    <button data-module="mcu">Microcontroller</button>
+  </nav>
+  <nav class="links">
     <a class="wide" href="../docs/hardware/pcb_design.html">PCB Design guide</a>
     <a href="../">← CR Formula Wiki</a>
   </nav>
 </header>
-<main>
+<main id="pcb">
   <aside>
     <div class="tabs" role="tablist">
       <button role="tab" data-tab="learn" aria-selected="true">Learn</button>
@@ -248,6 +312,10 @@
     <div class="tooltip" id="tooltip"></div>
     <div class="info" id="info" aria-live="polite"></div>
   </div>
+</main>
+<main id="lesson" class="lesson" hidden>
+  <aside class="lesson-side" id="lesson-side" aria-live="polite"></aside>
+  <section class="lesson-stage" id="lesson-stage"></section>
 </main>
 <noscript><div class="noscript">The PCB Explorer needs JavaScript and WebGL.</div></noscript>
 <script type="module" src="./app.js"></script>

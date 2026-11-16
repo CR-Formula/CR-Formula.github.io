@@ -8,6 +8,16 @@ nav_order: 5.5
 
 The **PCB Explorer** is an interactive 3D model of a small 4-layer circuit board, made for people designing their first PCB. Click any trace, via, pad, plane, label or component to learn what it's called and why it's there. You can also take a guided tour, compare good and bad layout techniques, search the glossary, and pull the layers apart or slice through the board.
 
+It also has three animated lesson modules, opened from the bar at the top of the page:
+
+| Module | What it covers |
+|--------|----------------|
+| **CAN Bus** | Bus topology, differential signalling (with a noise demo), dominant/recessive bits, a real CAN frame decoded bit by bit (with CRC and bit stuffing), arbitration, ACK and error counters, termination and reflections, bit timing, and the CAN circuit on the board |
+| **I²C** | Controller and targets, open-drain lines with a pull-up/rise-time calculator, START/STOP rules, a full temperature-sensor read, ACK/NACK, clock stretching, and address pins |
+| **Microcontroller** | The STM32F042K6: block diagram, interactive pinout, power and decoupling, the clock tree (PLL calculator), reset and boot, fetch–decode–execute of a blink loop, GPIO registers, interrupts and the NVIC, SWD programming, and a support-circuit checklist |
+
+The example board uses a real STM32F042K6 pinout, so the lessons and the 3D model match. Each lesson has a **See it on the 3D board** button that highlights the matching circuit.
+
 This page explains how to use it online, how to download it and run it on your own computer (with or without internet), and how to fix common problems.
 
 <details open markdown="block">
@@ -46,14 +56,19 @@ The module is just static files (HTML and JavaScript). There is nothing to insta
 
 ### Step 1: Download the files
 
-The program lives in the [`pcb-explorer`](https://github.com/CR-Formula/CR-Formula.github.io/tree/main/pcb-explorer) folder of the wiki repository. It contains four files:
+The program lives in the [`pcb-explorer`](https://github.com/CR-Formula/CR-Formula.github.io/tree/main/pcb-explorer) folder of the wiki repository:
 
 | File | Contents |
 |------|----------|
 | `index.html` | The page layout and styles |
-| `app.js` | Camera controls, clicking/highlighting and the sidebar |
+| `app.js` | Camera controls, clicking/highlighting, the sidebar and switching between modules |
 | `board.js` | The board design and the code that builds the 3D model |
-| `content.js` | All the text: glossary terms, techniques and tour steps |
+| `content.js` | The PCB text: glossary terms, techniques and tour steps |
+| `lessons/engine.js` | The lesson player (steps, play/pause, speed) |
+| `lessons/can.js`, `lessons/i2c.js`, `lessons/mcu.js` | The CAN, I²C and microcontroller lessons: text and animations |
+| `lessons/svg.js` | Small drawing helpers used by the lessons |
+
+Download the whole folder, including the `lessons` folder.
 
 Pick **one** way to download them.
 
@@ -185,9 +200,11 @@ The sidebar has four tabs:
 - **Glossary**: about 60 PCB terms in plain language. Terms tagged **3D** highlight on the board when clicked.
 - **Layers**: show or hide each layer, pull the stackup apart, or turn on the cross-section view.
 
+In the **CAN Bus**, **I²C** and **Microcontroller** modules, step through the lesson with **Next/Back** (or the ← → arrow keys). Each animation has **pause/play** (space bar), **restart** and **speed** controls under it. Many steps also have switches, sliders or buttons in the sidebar that change the animation.
+
 The toolbar at the top right switches between the 3D, Top, Bottom and Edge views. The **Explode layers** slider at the bottom separates the layers.
 
-You can link someone straight to a term by adding its name after `#` in the address, e.g. [`/pcb-explorer/#thermal-relief`]({{ '/pcb-explorer/#thermal-relief' | relative_url }}) or [`/pcb-explorer/#via`]({{ '/pcb-explorer/#via' | relative_url }}).
+You can link someone straight to a term by adding its name after `#` in the address, e.g. [`/pcb-explorer/#thermal-relief`]({{ '/pcb-explorer/#thermal-relief' | relative_url }}) or [`/pcb-explorer/#via`]({{ '/pcb-explorer/#via' | relative_url }}). Lesson steps work the same way: [`/pcb-explorer/#can/5`]({{ '/pcb-explorer/#can/5' | relative_url }}) opens step 5 of the CAN module (use `can`, `i2c` or `mcu`).
 
 ---
 
@@ -220,7 +237,7 @@ If you downloaded a ZIP, download a new ZIP and replace your old folder. If you 
 
 ## Editing or adding content
 
-Most changes only need `pcb-explorer/content.js`. It's plain text inside JavaScript objects:
+Most text changes only need `pcb-explorer/content.js` (PCB topics) or one of the files in `pcb-explorer/lessons/` (CAN, I²C, microcontroller). In the lesson files, each step is an object with a `title`, an HTML `body` and a `scene` function that draws the animation. `content.js` is plain text inside JavaScript objects:
 
 - **Glossary terms** are in `TERMS`. Each has a `name`, a category (`cat`), a one-line `short` definition, an HTML `body`, a list of `tips`, and `related` term IDs.
 - **Design techniques** are in `TECHNIQUES`. Each has the camera `view`, the terms to highlight, and the text.

@@ -3,12 +3,20 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { buildBoard, returnPaths, LAYER_IDS, H, BOARD, MAT } from './board.js';
 import { TERMS, CATEGORIES, TECHNIQUES, TOUR, LAYER_INFO } from './content.js';
+import { LessonPlayer } from './lessons/engine.js';
+import { CAN_MODULE } from './lessons/can.js';
+import { I2C_MODULE } from './lessons/i2c.js';
+import { MCU_MODULE } from './lessons/mcu.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // ------------------------------------------------------------------ renderer / scene
+const MODULES = { can: CAN_MODULE, i2c: I2C_MODULE, mcu: MCU_MODULE };
+const MODULE_NAMES = { can: 'CAN Bus', i2c: 'I²C', mcu: 'Microcontroller' };
+const pcbMain = $('#pcb');
+const lessonMain = $('#lesson');
 const viewport = $('#viewport');
 let renderer;
 try {
@@ -130,7 +138,7 @@ function applyHighlight() {
   if (!board) return;
   const set = new Set(state.highlight);
   for (const m of board.pickables) {
-    const on = m.userData.terms.some((t) => set.has(t));
+    const on = !m.userData.noHighlight && m.userData.terms.some((t) => set.has(t));
     if (on) {
       if (!m.userData.baseMat) m.userData.baseMat = m.material;
       if (!m.userData.hiMat) m.userData.hiMat = makeHi(m.userData.baseMat);
@@ -333,7 +341,8 @@ function showInfo(id, label) {
   info.innerHTML = `<button class="close" aria-label="Close">×</button>
     <div class="kicker">${esc(t.cat)}</div><h2>${esc(t.name)}</h2>
     ${label ? `<div class="clicked">${esc(label)}</div>` : ''}
-    <p class="lead">${t.short}</p>${t.body || ''}${tips}${rel}${show}`;
+    <p class="lead">${t.short}</p>${t.body || ''}${tips}${rel}${show}
+    ${t.module ? `<button class="btn primary module-btn" data-open-module="${t.module}">Open the ${esc(MODULE_NAMES[t.module])} module →</button>` : ''}`;
   info.classList.add('show');
   info.scrollTop = 0;
 }
@@ -343,6 +352,8 @@ info.addEventListener('click', (e) => {
   if (chip) { selectTerm(chip.dataset.term, { fly: true }); return; }
   const fly = e.target.closest('[data-fly]');
   if (fly) flyToTerm(fly.dataset.fly);
+  const mod = e.target.closest('[data-open-module]');
+  if (mod) openModule(mod.dataset.openModule);
 });
 
 function selectTerm(id, { label = null, fly = false } = {}) {
@@ -383,6 +394,12 @@ function renderLearn() {
         <button class="start-card" data-goto="glossary"><b>Glossary</b><span>${Object.keys(TERMS).length} PCB terms in plain language, most linked to the 3D model.</span></button>
         <button class="start-card" data-goto="layers"><b>Layers & cross-section</b><span>Show, hide and slice through the layer stackup.</span></button>
       </div>
+      <div class="tour-step" style="margin-top:22px">More modules</div>
+      <div class="start-cards" style="margin-top:8px">
+        <button class="start-card" data-module="can"><b>CAN Bus →</b><span>How the car’s controllers share two wires: differential signals, frames, arbitration, errors.</span></button>
+        <button class="start-card" data-module="i2c"><b>I²C →</b><span>The two-wire sensor bus: pull-ups, START/STOP, addresses, ACK, a real temperature read.</span></button>
+        <button class="start-card" data-module="mcu"><b>Microcontroller →</b><span>Inside the STM32F042: pinout, clocks, boot, running code, GPIO, interrupts, SWD.</span></button>
+      </div>
       <p class="muted small" style="margin-top:18px">Tip: you can click anything on the board, including a trace, via, pad, label or part, to see what it is.</p>`;
     return;
   }
@@ -417,6 +434,8 @@ learn.addEventListener('click', (e) => {
   const chip = e.target.closest('[data-term]');
   const step = e.target.closest('[data-step]');
   const go = e.target.closest('[data-goto]');
+  const mod = e.target.closest('[data-module]');
+  if (mod) { openModule(mod.dataset.module); return; }
   if (chip) { selectTerm(chip.dataset.term, { fly: false }); return; }
   if (step) { goStep(+step.dataset.step); return; }
   if (go) { setTab(go.dataset.goto); return; }
@@ -631,6 +650,7 @@ function tick(now) {
   const pulse = 0.4 + 0.3 * Math.sin(now * 0.005);
   hiMats.forEach((m) => { if (m.emissive) m.emissiveIntensity = pulse; });
   updateParticles(now);
+  if (pcbMain.hidden) return;
   doHover();
   renderer.render(scene, camera);
 }
@@ -647,5 +667,45 @@ if (renderer) {
   requestAnimationFrame(tick);
 }
 renderGlossary();
+
+// ------------------------------------------------------------------ lesson modules
+const player = new LessonPlayer({ side: $('#lesson-side'), stage: $('#lesson-stage'), onBoard: (b) => showOnBoard(b) });
+function openModule(id, step = 0) {
+  const lesson = id !== 'pcb' && MODULES[id];
+  $$('.modules [data-module]').forEach((b) => {
+    if (b.dataset.module === (lesson ? id : 'pcb')) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  if (!lesson) {
+    player.close();
+    lessonMain.hidden = true;
+    pcbMain.hidden = false;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ }
+  } else {
+    pcbMain.hidden = true;
+    lessonMain.hidden = false;
+    player.open(lesson, step);
+  }
+  window.scrollTo(0, 0);
+}
+function showOnBoard(b) {
+  openModule('pcb');
+  deactivateTech();
+  state.tourIdx = -1;
+  renderLearn();
+  setHidden([]);
+  setExplode(0);
+  selectTerm(b.terms[0], { fly: true });
+  setHighlight(b.terms);
+}
+$$('.modules [data-module]').forEach((b) => b.addEventListener('click', () => openModule(b.dataset.module)));
+player.onModule = (id) => openModule(id);
+player.onStep = (id, i) => { try { history.replaceState(null, '', `#${id}/${i + 1}`); } catch (e) { /* ignore */ } };
+
 const hash = decodeURIComponent(location.hash.slice(1));
-if (hash && TERMS[hash]) { setTab('glossary'); selectTerm(hash, { fly: true }); }
+const [hMod, hStep] = hash.split('/');
+if (MODULES[hMod]) openModule(hMod, Math.max(0, (parseInt(hStep, 10) || 1) - 1));
+else if (hash && TERMS[hash]) { setTab('glossary'); selectTerm(hash, { fly: true }); }
+window.addEventListener('hashchange', () => {
+  const [m, st] = decodeURIComponent(location.hash.slice(1)).split('/');
+  if (MODULES[m]) openModule(m, Math.max(0, (parseInt(st, 10) || 1) - 1));
+});

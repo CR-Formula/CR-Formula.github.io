@@ -1,3 +1,12 @@
+---
+layout: null
+---
+{%- comment -%}
+The ?v= numbers below change on every deploy, so browsers never mix
+old cached scripts with a new page. Opened locally (not through Jekyll),
+the raw text is harmless: the query string is simply ignored.
+{%- endcomment -%}
+{%- assign v = site.time | date: '%s' -%}
 <!doctype html>
 <html lang="en">
 <head>
@@ -244,7 +253,14 @@
 {
   "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "./board.js": "./board.js?v={{ v }}",
+    "./content.js": "./content.js?v={{ v }}",
+    "./lessons/engine.js": "./lessons/engine.js?v={{ v }}",
+    "./lessons/svg.js": "./lessons/svg.js?v={{ v }}",
+    "./lessons/can.js": "./lessons/can.js?v={{ v }}",
+    "./lessons/i2c.js": "./lessons/i2c.js?v={{ v }}",
+    "./lessons/mcu.js": "./lessons/mcu.js?v={{ v }}"
   }
 }
 </script>
@@ -318,6 +334,6 @@
   <section class="lesson-stage" id="lesson-stage"></section>
 </main>
 <noscript><div class="noscript">The PCB Explorer needs JavaScript and WebGL.</div></noscript>
-<script type="module" src="./app.js"></script>
+<script type="module" src="./app.js?v={{ v }}"></script>
 </body>
 </html>

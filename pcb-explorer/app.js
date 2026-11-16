@@ -659,12 +659,18 @@ function tick(now) {
 renderLearn();
 renderTechniques();
 if (renderer) {
-  rebuild();
-  resize();
-  const { pos, target } = viewToPose(VIEWS.iso);
-  camera.position.copy(pos);
-  controls.target.copy(target);
-  requestAnimationFrame(tick);
+  try {
+    rebuild();
+    resize();
+    const { pos, target } = viewToPose(VIEWS.iso);
+    camera.position.copy(pos);
+    controls.target.copy(target);
+    requestAnimationFrame(tick);
+  } catch (err) {
+    // Keep going: the lesson modules, glossary and techniques text still work without the 3D view.
+    console.error(err);
+    viewport.insertAdjacentHTML('afterbegin', '<div class="error">The 3D board failed to load in this browser. The CAN, I²C and Microcontroller modules still work.</div>');
+  }
 }
 renderGlossary();
 

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PCB Explorer · CR Formula Wiki</title>
+<meta name="description" content="An interactive 3D PCB for first-time board designers: click any part of a real 4-layer board to learn the terminology and design techniques.">
+<link rel="icon" href="../assets/favicon.ico">
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1e222b;
+    --line: #2a2f3a;
+    --text: #e6e8ee;
+    --muted: #9aa3b2;
+    --accent: #ffb020;
+    --accent-2: #3fd38a;
+    --link: #7cc4ff;
+    --radius: 10px;
+    --sidebar: 380px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); }
+  body { display: grid; grid-template-rows: 52px 1fr; overflow: hidden; }
+  a { color: var(--link); }
+  button { font: inherit; color: inherit; }
+
+  header {
+    display: flex; align-items: center; gap: 14px; padding: 0 16px;
+    border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  header .logo { width: 26px; height: 26px; border-radius: 6px; background: linear-gradient(135deg, #0e7a3e, #1fb866); display: grid; place-items: center; }
+  header .logo svg { width: 16px; height: 16px; }
+  header h1 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: .2px; white-space: nowrap; }
+  header .sub { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header nav { margin-left: auto; display: flex; gap: 14px; font-size: 13px; white-space: nowrap; }
+  header nav a { text-decoration: none; color: var(--muted); }
+  header nav a:hover { color: var(--text); }
+
+  main { display: grid; grid-template-columns: var(--sidebar) 1fr; min-height: 0; }
+  aside { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); }
+  .tabs button {
+    background: none; border: 0; padding: 12px 4px; font-size: 13px; color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent; font-weight: 550;
+  }
+  .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .tabs button:hover { color: var(--text); }
+  .tab { display: none; overflow-y: auto; padding: 16px; flex: 1; min-height: 0; }
+  .tab.active { display: block; }
+  .tab h3 { margin: 0 0 6px; font-size: 15px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 12.5px; }
+
+  /* tour */
+  .tour-progress { display: flex; gap: 4px; margin-bottom: 14px; }
+  .tour-progress span { flex: 1; height: 4px; border-radius: 2px; background: var(--line); cursor: pointer; }
+  .tour-progress span.done { background: var(--accent); }
+  .tour-step { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .tour-title { font-size: 20px; margin: 4px 0 10px; line-height: 1.25; }
+  .tour-body { font-size: 14.5px; line-height: 1.55; }
+  .tour-body p { margin: 0 0 10px; }
+  .tour-nav { display: flex; gap: 8px; margin-top: 16px; }
+  .btn {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 13.5px;
+  }
+  .btn:hover { border-color: #3d4452; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a1405; font-weight: 650; }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .start-cards { display: grid; gap: 10px; margin-top: 18px; }
+  .start-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; background: var(--panel-2); cursor: pointer; text-align: left; }
+  .start-card:hover { border-color: #3d4452; }
+  .start-card b { display: block; margin-bottom: 3px; font-size: 14px; }
+  .start-card span { color: var(--muted); font-size: 13px; }
+
+  /* glossary */
+  .search { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; }
+  .search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .gcat { margin: 18px 0 6px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+  .gitem { display: block; width: 100%; text-align: left; background: none; border: 0; border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+  .gitem:hover, .gitem.sel { background: var(--panel-2); }
+  .gitem b { font-size: 14px; font-weight: 600; }
+  .gitem .tag { font-size: 10.5px; color: var(--accent-2); border: 1px solid #275c41; border-radius: 4px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; }
+  .gitem p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+
+  /* techniques */
+  .tech { border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; background: var(--panel-2); overflow: hidden; }
+  .tech > button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 12px 14px; cursor: pointer; }
+  .tech > button b { font-size: 14px; display: block; }
+  .tech > button span { font-size: 12.5px; color: var(--muted); line-height: 1.4; display: block; margin-top: 3px; }
+  .tech.open { border-color: var(--accent); }
+  .tech .detail { display: none; padding: 0 14px 14px; font-size: 13.5px; line-height: 1.55; }
+  .tech.open .detail { display: block; }
+  .tech .detail p { margin: 0 0 10px; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: 0; }
+  .toggle { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #12151b; border: 1px solid var(--line); cursor: pointer; user-select: none; }
+  .toggle input { appearance: none; width: 38px; height: 22px; border-radius: 11px; background: #3a4150; position: relative; flex: none; cursor: pointer; transition: background .15s; margin: 0; }
+  .toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+  .toggle input:checked { background: #e5484d; }
+  .toggle input:checked::after { transform: translateX(16px); }
+  .toggle .state { font-size: 13px; }
+  .toggle .state .good { color: var(--accent-2); }
+  .toggle .state .bad { color: #ff7b7f; }
+  .calc { display: grid; gap: 10px; background: #12151b; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  .calc label { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+  .calc .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .calc select, .calc input[type=range] { width: 100%; }
+  .calc select { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px; }
+  .calc .result { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .calc .result small { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+  /* layers */
+  .stack { display: grid; gap: 3px; margin: 10px 0 18px; }
+  .lrow { display: grid; grid-template-columns: 22px 16px 1fr; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; }
+  .lrow:hover { background: var(--panel-2); }
+  .lrow input { margin: 0; accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+  .lrow .sw { width: 16px; height: 12px; border-radius: 2px; border: 1px solid rgba(255,255,255,.15); }
+  .lrow button { background: none; border: 0; text-align: left; cursor: pointer; padding: 0; }
+  .lrow b { font-weight: 550; font-size: 13.5px; }
+  .lrow small { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  .section-box { margin-top: 18px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel-2); }
+  input[type=range] { accent-color: var(--accent); }
+
+  /* viewport */
+  #viewport { position: relative; min-width: 0; min-height: 0; overflow: hidden;
+    background: radial-gradient(ellipse at 50% 40%, #252a35 0%, #14161b 70%); }
+  #viewport canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  .toolbar { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; background: rgba(23,26,33,.86); border: 1px solid var(--line); border-radius: 9px; padding: 4px; backdrop-filter: blur(6px); }
+  .toolbar button { background: none; border: 0; padding: 6px 10px; border-radius: 6px; font-size: 12.5px; cursor: pointer; color: var(--muted); }
+  .toolbar button:hover { background: var(--panel-2); color: var(--text); }
+  .explode {
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px; background: rgba(23,26,33,.86); border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px; font-size: 13px;
+    backdrop-filter: blur(6px); white-space: nowrap;
+  }
+  .explode input { width: 180px; }
+  .hint { position: absolute; top: 14px; left: 14px; font-size: 12.5px; color: var(--muted); background: rgba(23,26,33,.7); padding: 6px 10px; border-radius: 8px; pointer-events: none; transition: opacity .5s; }
+  .tooltip { position: absolute; pointer-events: none; background: rgba(10,12,16,.92); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; font-size: 12.5px; max-width: 320px; transform: translate(14px, 14px); display: none; z-index: 5; }
+  .info {
+    position: absolute; left: 14px; bottom: 64px; width: min(400px, calc(100% - 28px)); max-height: calc(100% - 140px); overflow-y: auto;
+    background: rgba(23,26,33,.96); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; box-shadow: 0 10px 30px rgba(0,0,0,.4);
+    display: none; font-size: 14px; line-height: 1.55; z-index: 4;
+  }
+  .info.show { display: block; }
+  .info .close { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 6px; background: none; border: 0; font-size: 20px; cursor: pointer; color: var(--muted); }
+  .info .close:hover { background: var(--panel-2); color: var(--text); }
+  .info .kicker { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); }
+  .info h2 { margin: 2px 28px 8px 0; font-size: 19px; line-height: 1.25; }
+  .info .clicked { font-size: 12.5px; background: #12151b; border-left: 3px solid var(--accent); padding: 6px 10px; border-radius: 4px; margin-bottom: 10px; }
+  .info .lead { font-weight: 550; }
+  .info p { margin: 0 0 10px; }
+  .info ul, .info ol { margin: 0 0 10px; padding-left: 20px; }
+  .info h4 { margin: 12px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .info .tips li { margin-bottom: 4px; }
+  .info .actions { margin-top: 10px; display: flex; gap: 8px; }
+
+  @media (max-width: 860px) {
+    body { overflow: auto; grid-template-rows: 52px auto; height: auto; min-height: 100%; }
+    main { grid-template-columns: 1fr; grid-template-rows: 58vh auto; }
+    #viewport { grid-row: 1; height: 58vh; }
+    aside { grid-row: 2; border-right: 0; border-top: 1px solid var(--line); }
+    .tab { overflow: visible; }
+    header .sub { display: none; }
+    .info { left: 8px; right: 8px; width: auto; bottom: 58px; max-height: calc(100% - 110px); }
+    .explode input { width: 110px; }
+    .toolbar button { padding: 6px 7px; }
+    .hint { display: none; }
+  }
+  @media (max-width: 480px) {
+    header nav a.wide { display: none; }
+  }
+  .noscript, .error { padding: 24px; color: var(--muted); }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<header>
+  <div class="logo" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M2 5h4l2 2h6M2 11h6l2-2"/><circle cx="14" cy="7" r="1.2" fill="#fff"/><circle cx="2" cy="5" r="1.2" fill="#fff"/><circle cx="2" cy="11" r="1.2" fill="#fff"/></svg></div>
+  <h1>PCB Explorer</h1>
+  <span class="sub">An interactive 3D guide to PCB terminology and design for first-time board designers</span>
+  <nav>
+    <a class="wide" href="../docs/hardware/pcb_design.html">PCB Design guide</a>
+    <a href="../">← CR Formula Wiki</a>
+  </nav>
+</header>
+<main>
+  <aside>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="learn" aria-selected="true">Learn</button>
+      <button role="tab" data-tab="techniques" aria-selected="false">Techniques</button>
+      <button role="tab" data-tab="glossary" aria-selected="false">Glossary</button>
+      <button role="tab" data-tab="layers" aria-selected="false">Layers</button>
+    </div>
+    <section class="tab active" id="tab-learn" role="tabpanel"></section>
+    <section class="tab" id="tab-techniques" role="tabpanel">
+      <h3>Design techniques</h3>
+      <p class="muted small" style="margin-top:0">Each technique moves the camera to the relevant area. Many have a switch to compare a good layout with a bad one.</p>
+      <div id="tech-list"></div>
+    </section>
+    <section class="tab" id="tab-glossary" role="tabpanel">
+      <input class="search" id="gsearch" type="search" placeholder="Search terms… (e.g. via, plane, mask)" autocomplete="off">
+      <div id="glist"></div>
+    </section>
+    <section class="tab" id="tab-layers" role="tabpanel">
+      <h3>Layer stackup</h3>
+      <p class="muted small" style="margin-top:0">Top of the board first. Tick a box to show or hide a layer, or click a name to learn about it.</p>
+      <div class="presets">
+        <button class="chip" data-preset="all">Show all</button>
+        <button class="chip" data-preset="bare">Bare copper (top)</button>
+        <button class="chip" data-preset="gnd">Ground plane</button>
+        <button class="chip" data-preset="pwr">Power plane</button>
+        <button class="chip" data-preset="bottom">Bottom layer</button>
+      </div>
+      <div class="stack" id="stack"></div>
+      <div class="section-box">
+        <label class="toggle" style="background:none;border:0;padding:0"><input type="checkbox" id="clip-on"><span class="state"><b>Cross-section view</b></span></label>
+        <p class="muted small">Slices the board as if it were cut with a saw, so you can see the layers, via barrels and through-hole pins inside it.</p>
+        <label class="small muted">Cut position <input type="range" id="clip-y" min="-21" max="21" step="0.1" value="14" style="width:100%"></label>
+      </div>
+    </section>
+  </aside>
+  <div id="viewport">
+    <div class="hint" id="hint">Drag to rotate · scroll to zoom · right-drag to pan · <b>click anything</b></div>
+    <div class="toolbar" role="toolbar" aria-label="Camera views">
+      <button data-view="iso" title="3D view">3D</button>
+      <button data-view="top" title="Look from the top">Top</button>
+      <button data-view="bottom" title="Look from the bottom">Bottom</button>
+      <button data-view="side" title="Look at the edge">Edge</button>
+    </div>
+    <div class="explode"><span>Explode layers</span><input type="range" id="explode" min="0" max="1" step="0.01" value="0" aria-label="Explode layers"></div>
+    <div class="tooltip" id="tooltip"></div>
+    <div class="info" id="info" aria-live="polite"></div>
+  </div>
+</main>
+<noscript><div class="noscript">The PCB Explorer needs JavaScript and WebGL.</div></noscript>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

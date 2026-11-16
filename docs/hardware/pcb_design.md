@@ -6,6 +6,8 @@ nav_order: 3
 
 # PCB Design Basics
 
+> **New to PCBs?** Try the interactive [PCB Explorer]({{ '/pcb-explorer/' | relative_url }}). It's a 3D board where you can click on any trace, via, plane or part to learn what it is, and flip between good and bad layout techniques.
+
 **Printed Circuit Board (PCB) Design** is the process of laying out the electrical and mechanical connections for electronic circuits. A PCB provides physical support and a platform to interconnect components like resistors, capacitors, ICs, and connectors. Below are the key concepts and steps involved in PCB design.
 
 ## Key PCB Design Terms

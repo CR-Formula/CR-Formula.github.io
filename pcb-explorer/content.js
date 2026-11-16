@@ -9,7 +9,8 @@ export const TERMS = {
     name: 'Printed circuit board (PCB)', cat: 'Board structure',
     short: 'A laminated sandwich of copper and insulating layers that mechanically holds components and electrically connects them.',
     body: `<p>Instead of wires, a PCB uses flat copper shapes etched onto insulating sheets. Components are soldered to exposed copper pads and the copper patterns carry signals and power between them.</p>
-<p>The board in this explorer is a typical small <b>4-layer</b> design: a microcontroller, a USB-C connector for power and data, a 3.3 V regulator, a CAN bus transceiver and a programming header.</p>`,
+<p>The board in this explorer is a typical small <b>4-layer</b> design: an <b>STM32F042K6</b> microcontroller, a USB-C connector for 5 V power, a 3.3 V regulator, a CAN bus transceiver, an I²C temperature sensor and a programming header.</p>
+<p>Want to know how the chips talk to each other? Open the <b>CAN Bus</b>, <b>I²C</b> and <b>Microcontroller</b> modules from the top bar.</p>`,
     tips: ['Draw the schematic first, then lay out the board. The layout should follow the schematic, not the other way round.'],
     related: ['stackup', 'copper-layer', 'substrate'],
   },
@@ -129,7 +130,7 @@ export const TERMS = {
   'blind-via': {
     name: 'Blind, buried & micro vias', cat: 'Copper features',
     short: 'Vias that do not go all the way through: blind vias reach one outer layer, buried vias connect only inner layers.',
-    body: `<p>The tiny via next to U1 (near pin 26) is a <b>blind microvia</b>: it only goes from L1 down to the L2 ground plane, so it takes up no space on L3 or L4. Explode the layers to see its short barrel.</p>
+    body: `<p>The tiny via next to U1 (by its ground pin 32, top-left corner) is a <b>blind microvia</b>: it only goes from L1 down to the L2 ground plane, so it takes up no space on L3 or L4. Explode the layers to see its short barrel.</p>
 <p>They are essential for dense BGA designs, but they add extra lamination and drilling steps and cost noticeably more.</p>`,
     tips: ['For student boards, stick to through vias unless you really need the density.'],
     related: ['via', 'hdi'],
@@ -251,7 +252,7 @@ export const TERMS = {
     name: 'Decoupling (bypass) capacitor', cat: 'Components & assembly',
     short: 'A small capacitor (often 100 nF) placed right next to an IC’s power pin to supply fast bursts of current.',
     body: `<p>When a chip switches, it draws sharp current spikes. The supply is too far away, through too much inductance, to deliver them quickly, so the local voltage dips. A capacitor right at the pin supplies that current instead.</p>
-<p>U1 has one 100 nF cap (C1–C4) per power pin, each with its own short path to the planes.</p>`,
+<p>Each STM32 supply pin has its own 100 nF cap: C1 on VDD (pin 1), C2 on VDDA (pin 5, the analog supply) and C3 on VDDIO2 (pin 17). The temperature sensor U4 gets C4.</p>`,
     tips: ['One 100 nF per power pin, as close as possible to the pin. Add a bulk cap (1–10 µF) nearby.',
       'Route power from the plane via → capacitor pad → IC pin, so the current flows through the cap.',
       'The <b>loop area</b> (pin → cap → ground → back to pin) is what matters. See the <i>Decoupling placement</i> technique.'],
@@ -260,7 +261,7 @@ export const TERMS = {
   crystal: {
     name: 'Crystal oscillator', cat: 'Components & assembly',
     short: 'A quartz resonator that gives a microcontroller an accurate clock. Its layout is surprisingly sensitive.',
-    body: `<p>Y1 and its two load capacitors (C5, C6) sit as close to U1’s oscillator pins as possible. The traces are short and the solid ground plane sits underneath.</p>`,
+    body: `<p>Y1 (8 MHz) and its two load capacitors (C5, C6) sit as close to the STM32’s OSC_IN/OSC_OUT pins (2 and 3) as possible. The traces are short and the solid ground plane sits underneath.</p>`,
     tips: ['Keep crystal traces as short as possible and route no other signals near or under them.',
       'Connect the load caps to ground with short via connections.',
       'Calculate the load capacitor values from the crystal’s datasheet (C<sub>L</sub> and stray capacitance).'],
@@ -268,7 +269,7 @@ export const TERMS = {
   },
   connector: {
     name: 'Connectors', cat: 'Components & assembly',
-    short: 'Parts that join the board to cables or other boards: USB-C (J1), a debug header (J2) and a CAN terminal (J3).',
+    short: 'Parts that join the board to cables or other boards: USB-C for power (J1), a debug header (J2) and a CAN terminal (J3).',
     body: `<p>Connectors usually sit at the board edge so cables can reach them. The mechanical design matters as much as the electrical one: check orientation, mating clearance and how the cable will be routed.</p>`,
     tips: ['Put the connector’s 3D model in your CAD tool and check it from every side.',
       'Label every pin on the silkscreen.'],
@@ -297,6 +298,38 @@ export const TERMS = {
     related: ['outline', 'keepout'],
   },
 
+
+  // ------------------------------------------------------------ chips & buses (link to the lesson modules)
+  mcu: {
+    name: 'Microcontroller (STM32F042K6)', cat: 'Components & assembly', module: 'mcu',
+    short: 'A whole small computer on one chip: CPU, Flash memory, RAM, clocks and peripherals like CAN, I²C, timers and ADC.',
+    body: `<p>U1 is an <b>STM32F042K6</b> from ST: an Arm Cortex-M0 core running at up to 48 MHz, with 32 KB of Flash and 6 KB of RAM, in a 32-pin LQFP package. On this board it reads the I²C temperature sensor, talks on the CAN bus and blinks two LEDs.</p>
+<p>The parts around it are its support circuit: decoupling capacitors (C1–C3), an 8 MHz crystal (Y1), a BOOT0 pull-down (R6), and the SWD programming header (J2).</p>`,
+    tips: ['Plan pin assignments in STM32CubeMX before you draw the schematic. Pins have alternate functions that can clash. On the F042, CAN and USB share PA11/PA12, so this board can’t use both.',
+      'Always break out SWDIO, SWCLK, NRST, 3V3 and GND to a header so you can program and debug.'],
+    related: ['decap', 'crystal', 'can', 'i2c'],
+  },
+  can: {
+    name: 'CAN bus', cat: 'Design concepts', module: 'can',
+    short: 'Controller Area Network: the robust two-wire differential bus that most of the car’s controllers share.',
+    body: `<p>The STM32’s built-in CAN controller sends logic-level bits on CAN_TX (PA12) to the transceiver U3. U3 turns them into the differential CANH/CANL signals that leave the board through J3. R3 is the 120 Ω termination for this end of the bus.</p>`,
+    tips: ['Terminate the bus with 120 Ω at <b>both physical ends</b>, and nowhere else.', 'Route CANH/CANL as a pair, and use twisted-pair cable off the board.'],
+    related: ['diffpair', 'mcu', 'connector'],
+  },
+  i2c: {
+    name: 'I²C bus', cat: 'Design concepts', module: 'i2c',
+    short: 'A simple two-wire bus (SDA data + SCL clock) for connecting sensors and small chips over short distances on a board.',
+    body: `<p>The STM32’s I2C1 peripheral (PB6 = SCL, PB7 = SDA) talks to U4, a temperature sensor at address <b>0x48</b>. R7 and R8 are the pull-up resistors that I²C needs, because devices can only pull the lines low.</p>`,
+    tips: ['Every I²C bus needs pull-up resistors (typically 2.2–10 kΩ) on SDA and SCL.', 'Check that no two devices on one bus share an address.'],
+    related: ['pull-up', 'mcu'],
+  },
+  'pull-up': {
+    name: 'Pull-up / pull-down resistor', cat: 'Components & assembly',
+    short: 'A resistor that gently holds a signal high (to the supply) or low (to ground) when nothing is actively driving it.',
+    body: `<p>R7/R8 pull the I²C lines up to 3.3 V. R6 pulls the STM32’s BOOT0 pin down to ground so the chip always starts its own program from Flash. A floating (unconnected) input can read as random 0s and 1s.</p>`,
+    tips: ['Never leave an important input like BOOT0, reset or an enable pin floating.'],
+    related: ['i2c', 'mcu'],
+  },
   // ------------------------------------------------------------ concepts
   'trace-width': {
     name: 'Trace width & current', cat: 'Design concepts',
@@ -327,7 +360,7 @@ export const TERMS = {
     name: 'Differential pair', cat: 'Design concepts',
     short: 'Two traces carrying equal and opposite signals (USB D+/D−, CAN H/L), routed together as a matched pair.',
     body: `<p>The receiver looks only at the <i>difference</i> between the two lines. Noise that hits both lines equally cancels out. This only works if both traces stay together with the same length, width and spacing the whole way.</p>
-<p>USB needs about 90 Ω differential impedance. CAN is slower and more forgiving, but it still benefits from tight routing and a <b>120 Ω termination</b> resistor (R3) at each end of the bus.</p>`,
+<p>On this board, CANH/CANL run as a pair from the transceiver U3 to J3. CAN is fairly forgiving, but it still benefits from tight routing and needs a <b>120 Ω termination</b> resistor (R3) at each end of the bus. Faster pairs like USB (about 90 Ω differential) need controlled impedance.</p>`,
     tips: ['Route the pair together, symmetrically, with constant spacing.',
       'Match lengths: add small “serpentine” wiggles to the shorter trace if needed.',
       'Use your CAD tool’s differential-pair router and impedance calculator.'],
@@ -361,7 +394,7 @@ export const TERMS = {
 export const TECHNIQUES = [
   {
     id: 'corners', title: 'Trace corners: 45° not 90°', terms: ['trace'], tag: 'corners',
-    view: { t: [9, -6.5], d: 26, az: 0, el: 62 },
+    view: { t: [9, -5], d: 26, az: 0, el: 62 },
     summary: 'Route bends with two 45° turns (or arcs) instead of a sharp right angle.',
     body: `<p>Look at the CAN TX/RX traces running from U1 to U3. Toggle the switch to see the same route drawn with 90° corners.</p>
 <p>Why it matters: a 90° corner is slightly wider at the bend, which causes a small impedance bump. Sharp inside corners were also once an etching problem (acid traps). For low-speed signals the electrical effect is tiny. The real reason to use 45° is that it gives shorter, cleaner routes, and it is a sign of a carefully made layout.</p>`,
@@ -369,18 +402,18 @@ export const TECHNIQUES = [
   },
   {
     id: 'decap', title: 'Decoupling capacitor placement', terms: ['decap'],
-    view: { t: [3, 7], d: 20, az: 0, el: 65 },
+    view: { t: [-6, 4.5], d: 20, az: 0, el: 65 },
     summary: 'Put each decoupling cap right at the power pin it serves, with short, direct via connections.',
-    body: `<p>The orange shape is the <b>current loop</b>: from U1’s VDD pin, through capacitor C4, down its ground via, through the ground plane and back up into U1’s GND pin.</p>
-<p>A larger loop means more inductance, so the cap can’t deliver current fast enough and more noise radiates. Toggle the switch to move C4 a few millimetres away and watch the loop grow.</p>`,
-    toggle: { key: 'decapFar', on: 'Move C4 far away (bad)', off: 'C4 next to its pin (good)' },
+    body: `<p>The orange shape is the <b>current loop</b>: from the STM32’s VDD pin (pin 1), through capacitor C1, down its ground via, through the ground plane and back up into the VSS pin (pin 32).</p>
+<p>A larger loop means more inductance, so the cap can’t deliver current fast enough and more noise radiates. Toggle the switch to move C1 a few millimetres away and watch the loop grow.</p>`,
+    toggle: { key: 'decapFar', on: 'Move C1 far away (bad)', off: 'C1 next to its pin (good)' },
     loop: true,
   },
   {
     id: 'return', title: 'Keep the return path continuous', terms: ['return-path', 'ground-plane'],
-    view: { t: [-14, 2], d: 30, az: 0, el: 50 }, hidden: ['silkT', 'maskT', 'ppT', 'comps'], explode: 0.45, highlight: [],
+    view: { t: [10, 7.5], d: 26, az: 0, el: 50 }, hidden: ['silkT', 'maskT', 'ppT', 'comps'], explode: 0.45, highlight: [],
     summary: 'High-frequency return current flows in the plane directly under its trace. Don’t make it detour.',
-    body: `<p>The <span class="swatch" style="background:#36d6ff"></span> cyan dots are the USB signal current flowing along its trace on L1. The <span class="swatch" style="background:#ff4fd8"></span> pink dots are the matching return current on the L2 ground plane, travelling back underneath it.</p>
+    body: `<p>The <span class="swatch" style="background:#36d6ff"></span> cyan dots are the SWCLK debug clock, flowing from the programmer header J2 into the STM32 along its trace on L1. The <span class="swatch" style="background:#ff4fd8"></span> pink dots are the matching return current on the L2 ground plane, travelling back underneath it.</p>
 <p>Toggle the switch to cut a slot in the ground plane. The return current now has to go around the slot. The loop gets bigger, so the trace radiates more and picks up more noise, and the impedance changes where it crosses the gap.</p>`,
     toggle: { key: 'slot', on: 'Cut a slot in the ground plane (bad)', off: 'Solid ground plane (good)' },
     returnAnim: true,
@@ -402,17 +435,16 @@ export const TECHNIQUES = [
   },
   {
     id: 'diffpair', title: 'Routing differential pairs', terms: ['diffpair'],
-    view: { t: [-14, 1.6], d: 30, az: 0, el: 60 },
+    view: { t: [21, -10], d: 20, az: 0, el: 60 },
     summary: 'Keep pairs together, symmetric, length-matched and over a solid plane.',
-    body: `<p>USB D+/D− run side by side from J1 to U1 at constant spacing. CAN H/L leave U3 together, pass the 120 Ω termination resistor R3, and fan out only at the last moment to reach J3’s pins.</p>
+    body: `<p>CANH and CANL leave the transceiver U3 together, pass the 120 Ω termination resistor R3, and fan out only at the last moment to reach J3’s pins. Off the board, the pair continues as a twisted-pair cable.</p><p>The <b>CAN Bus</b> module (top bar) explains why the pair works the way it does.</p>
 <p>Keep both traces the same length and avoid putting vias or other parts between them.</p>`,
-    altView: { t: [23, -10], d: 18, az: 0, el: 60 }, altLabel: 'Look at the CAN pair',
   },
   {
     id: 'crystal', title: 'Crystal layout', terms: ['crystal'],
-    view: { t: [-0.8, 8], d: 14, az: 0, el: 60 },
+    view: { t: [-9.5, 1.6], d: 14, az: 0, el: 60 },
     summary: 'Crystal and load caps tight against the MCU. Short traces. Nothing else nearby.',
-    body: `<p>Oscillator circuits have tiny signal levels and high impedance, so they pick up noise easily. Y1 sits right next to U1’s OSC pins, with C5/C6 directly above. Their ground vias drop straight into L2, and no other signals pass through this area.</p>`,
+    body: `<p>Oscillator circuits have tiny signal levels and high impedance, so they pick up noise easily. Y1 sits right next to the STM32’s OSC_IN/OSC_OUT pins, with C5/C6 right beside it. Their ground vias drop straight into L2, and no other signals pass through this area.</p>`,
   },
   {
     id: 'thermal-vias', title: 'Getting heat out of parts', terms: ['thermal-vias', 'pour'],

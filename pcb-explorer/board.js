@@ -158,13 +158,16 @@ function markedMaterial(lines) {
 }
 
 // ---------------------------------------------------------------- footprints
-const U1_PINS = {
-  1: 'VDD', 2: 'USB D−', 3: 'USB D+', 4: 'NRST', 6: 'LED2', 7: 'LED1', 8: 'VSS / GND',
-  11: 'VDD', 12: 'VSS / GND', 17: 'CAN RX', 18: 'CAN TX', 19: 'VDD', 20: 'VSS / GND',
-  22: 'SWDIO', 23: 'SWCLK', 25: 'VDD', 26: 'VSS / GND', 29: 'OSC OUT', 30: 'OSC IN',
+// STM32F042K6 (LQFP-32) pinout. Check ST's datasheet (DS10152) before using it for a real design.
+export const U1_PINS = {
+  1: 'VDD', 2: 'PF0 / OSC_IN', 3: 'PF1 / OSC_OUT', 4: 'NRST', 5: 'VDDA', 6: 'PA0', 7: 'PA1', 8: 'PA2',
+  9: 'PA3', 10: 'PA4 (green LED)', 11: 'PA5 (red LED)', 12: 'PA6', 13: 'PA7', 14: 'PB0', 15: 'PB1', 16: 'VSS / GND',
+  17: 'VDDIO2', 18: 'PA8', 19: 'PA9', 20: 'PA10', 21: 'PA11 / CAN_RX', 22: 'PA12 / CAN_TX', 23: 'PA13 / SWDIO', 24: 'PA14 / SWCLK',
+  25: 'PA15', 26: 'PB3', 27: 'PB4', 28: 'PB5', 29: 'PB6 / I2C1_SCL', 30: 'PB7 / I2C1_SDA', 31: 'BOOT0', 32: 'VSS / GND',
 };
 const U3_PINS = { 1: 'TXD', 2: 'GND', 3: 'VCC', 4: 'RXD', 5: 'VREF', 6: 'CANL', 7: 'CANH', 8: 'STBY' };
 const U2_PINS = { 1: 'GND', 2: 'VOUT', 3: 'VIN', 4: 'VOUT (tab)' };
+const U4_PINS = { 1: 'SDA', 2: 'SCL', 3: 'OS (alert)', 4: 'GND', 5: 'A2', 6: 'A1', 7: 'A0', 8: 'VCC' };
 
 function qfpPads() {
   const pads = [];
@@ -202,40 +205,45 @@ function footprintPads(c) {
   return local.map((p) => {
     let { x, y, w, h } = p;
     if (c.rot === 90) { [x, y] = [-y, x]; [w, h] = [h, w]; }
+    if (c.rot === 180) { [x, y] = [-x, -y]; }
     return { ...p, x: c.x + x, y: c.y + y, w, h, ref: c.ref };
   });
 }
 
 function pinName(ref, n) {
-  const map = ref === 'U1' ? U1_PINS : ref === 'U3' ? U3_PINS : ref === 'U2' ? U2_PINS : null;
-  if (map) return map[n] || (ref === 'U1' ? 'unused GPIO' : '');
+  const map = { U1: U1_PINS, U2: U2_PINS, U3: U3_PINS, U4: U4_PINS }[ref];
+  if (map) return map[n] || '';
   return '';
 }
 
 // ---------------------------------------------------------------- layout data
 function layout(v) {
   const smd = [
-    { ref: 'U1', fp: 'qfp32', x: 0, y: 0, kind: 'qfp', terms: ['smd', 'footprint'], label: 'U1 — Microcontroller (LQFP-32 package)', mark: ['CR-32', 'MCU', 'LQFP32'] },
+    { ref: 'U1', fp: 'qfp32', x: 0, y: 0, kind: 'qfp', terms: ['mcu', 'smd', 'footprint'], label: 'U1 — STM32F042K6 microcontroller (Arm Cortex-M0, LQFP-32)', mark: ['STM32', 'F042K6', 'LQFP32'] },
     { ref: 'U2', fp: 'sot223', x: -21.5, y: 12, kind: 'sot223', terms: ['smd', 'thermal-vias'], label: 'U2 — 3.3 V linear regulator (SOT-223 package)', mark: ['LDO', '3V3'] },
-    { ref: 'U3', fp: 'soic8', x: 16, y: -10, kind: 'soic8', terms: ['smd'], label: 'U3 — CAN bus transceiver (SOIC-8 package)', mark: ['CAN', 'XCVR'] },
-    { ref: 'Y1', fp: 'xtal', x: -0.8, y: 8.2, kind: 'xtal', terms: ['crystal', 'smd'], label: 'Y1 — 8 MHz crystal (3.2 × 1.5 mm)' },
-    { ref: 'C1', fp: '0603', x: -5.85, y: 4.6, kind: 'cap', terms: ['decap', 'smd'], label: 'C1 — 100 nF decoupling capacitor (0603)' },
-    { ref: 'C2', fp: '0603', x: -0.45, y: -6.4, kind: 'cap', terms: ['decap', 'smd'], label: 'C2 — 100 nF decoupling capacitor (0603)' },
-    { ref: 'C3', fp: '0603', x: 6.3, y: -0.45, rot: 90, kind: 'cap', terms: ['decap', 'smd'], label: 'C3 — 100 nF decoupling capacitor (0603)' },
+    { ref: 'U3', fp: 'soic8', x: 16, y: -10, kind: 'soic8', terms: ['can', 'smd'], label: 'U3 — CAN bus transceiver (SOIC-8 package)', mark: ['CAN', 'XCVR'] },
+    { ref: 'U4', fp: 'soic8', x: -8, y: 11, rot: 180, kind: 'soic8', terms: ['i2c', 'smd'], label: 'U4 — I²C temperature sensor (LM75-style, address 0x48, SOIC-8)', mark: ['TEMP', 'I2C'] },
+    { ref: 'Y1', fp: 'xtal', x: -8.6, y: 1.6, rot: 90, kind: 'xtal', terms: ['crystal', 'smd'], label: 'Y1 — 8 MHz crystal for the STM32’s HSE oscillator' },
     v.decapFar
-      ? { ref: 'C4', fp: '0603', x: 4.8, y: 10.2, rot: 90, kind: 'cap', terms: ['decap', 'smd'], label: 'C4 — 100 nF decoupling capacitor, placed badly (far from its pin)' }
-      : { ref: 'C4', fp: '0603', x: 2.8, y: 6.7, rot: 90, kind: 'cap', terms: ['decap', 'smd'], label: 'C4 — 100 nF decoupling capacitor (0603)' },
-    { ref: 'C5', fp: '0603', x: -2.05, y: 10.6, rot: 90, kind: 'cap', terms: ['crystal', 'smd'], label: 'C5 — 12 pF crystal load capacitor (0603)' },
-    { ref: 'C6', fp: '0603', x: 0.45, y: 10.6, rot: 90, kind: 'cap', terms: ['crystal', 'smd'], label: 'C6 — 12 pF crystal load capacitor (0603)' },
+      ? { ref: 'C1', fp: '0603', x: -10.0, y: 6.2, kind: 'cap', terms: ['decap', 'smd'], label: 'C1 — 100 nF VDD decoupling capacitor, placed badly (far from its pin)' }
+      : { ref: 'C1', fp: '0603', x: -5.85, y: 4.6, kind: 'cap', terms: ['decap', 'smd'], label: 'C1 — 100 nF decoupling capacitor for VDD (pin 1)' },
+    { ref: 'C2', fp: '0603', x: -6.2, y: -1.75, rot: 90, kind: 'cap', terms: ['decap', 'smd'], label: 'C2 — 100 nF decoupling capacitor for VDDA (pin 5, analog supply)' },
+    { ref: 'C3', fp: '0603', x: 6.0, y: -3.55, rot: 90, kind: 'cap', terms: ['decap', 'smd'], label: 'C3 — 100 nF decoupling capacitor for VDDIO2 (pin 17)' },
+    { ref: 'C4', fp: '0603', x: -12.6, y: 8.345, rot: 90, kind: 'cap', terms: ['decap', 'smd', 'i2c'], label: 'C4 — 100 nF decoupling capacitor for the temperature sensor U4' },
+    { ref: 'C5', fp: '0603', x: -10.6, y: 2.85, kind: 'cap', terms: ['crystal', 'smd'], label: 'C5 — 12 pF crystal load capacitor (0603)' },
+    { ref: 'C6', fp: '0603', x: -10.6, y: 0.35, kind: 'cap', terms: ['crystal', 'smd'], label: 'C6 — 12 pF crystal load capacitor (0603)' },
     { ref: 'C7', fp: '0603', x: -16.4, y: 8.85, kind: 'cap', terms: ['smd'], label: 'C7 — 10 µF regulator input capacitor (0603)' },
     { ref: 'C8', fp: '0603', x: -16.0, y: 15.15, kind: 'cap', terms: ['smd'], label: 'C8 — 10 µF regulator output capacitor (0603)' },
     { ref: 'R1', fp: '0603', x: -15, y: -9, kind: 'res', terms: ['smd'], label: 'R1 — 1 kΩ LED current-limiting resistor (0603)' },
     { ref: 'R2', fp: '0603', x: -15, y: -6.5, kind: 'res', terms: ['smd'], label: 'R2 — 1 kΩ LED current-limiting resistor (0603)' },
-    { ref: 'D1', fp: '0603', x: -19, y: -9, kind: 'led', color: 'red', terms: ['smd', 'pin1'], label: 'D1 — Red power LED (0603). Polarity matters!' },
-    { ref: 'D2', fp: '0603', x: -19, y: -6.5, kind: 'led', color: 'green', terms: ['smd', 'pin1'], label: 'D2 — Green status LED (0603). Polarity matters!' },
-    { ref: 'R3', fp: '0603', x: 24.6, y: -10, rot: 90, kind: 'res', terms: ['smd', 'diffpair'], label: 'R3 — 120 Ω CAN bus termination resistor (0603)' },
+    { ref: 'D1', fp: '0603', x: -19, y: -9, kind: 'led', color: 'red', terms: ['smd', 'pin1'], label: 'D1 — Red LED driven by PA5 (0603). Polarity matters!' },
+    { ref: 'D2', fp: '0603', x: -19, y: -6.5, kind: 'led', color: 'green', terms: ['smd', 'pin1'], label: 'D2 — Green LED driven by PA4 (0603). Polarity matters!' },
+    { ref: 'R3', fp: '0603', x: 24.6, y: -10, rot: 90, kind: 'res', terms: ['can', 'smd', 'diffpair'], label: 'R3 — 120 Ω CAN bus termination resistor (0603)' },
     { ref: 'R5', fp: '0603', x: -23.2, y: -1.6, rot: 90, kind: 'res', terms: ['smd'], label: 'R5 — 5.1 kΩ USB-C CC pull-down resistor (0603)' },
-    { ref: 'J1', fp: 'usb', x: -25.4, y: 2.6, kind: 'usb', terms: ['connector', 'smd'], label: 'J1 — USB-C connector (power + data)' },
+    { ref: 'R6', fp: '0603', x: -2.0, y: 6.9, rot: 90, kind: 'res', terms: ['mcu', 'smd'], label: 'R6 — 10 kΩ pull-down on BOOT0, so the STM32 boots from its own Flash' },
+    { ref: 'R7', fp: '0603', x: -3.0, y: 11.115, rot: 90, kind: 'res', terms: ['pull-up', 'i2c', 'smd'], label: 'R7 — 4.7 kΩ I²C pull-up resistor on SCL' },
+    { ref: 'R8', fp: '0603', x: -4.3, y: 8.345, rot: 90, kind: 'res', terms: ['pull-up', 'i2c', 'smd'], label: 'R8 — 4.7 kΩ I²C pull-up resistor on SDA' },
+    { ref: 'J1', fp: 'usb', x: -25.4, y: 2.6, kind: 'usb', terms: ['connector', 'smd'], label: 'J1 — USB-C connector (5 V power input; data pins unused)' },
   ];
 
   const th = [
@@ -255,11 +263,12 @@ function layout(v) {
 
   const V = (x, y, net, kind = 'via') => ({ x, y, net, kind, drill: 0.3, pad: 0.6 });
   const vias = [
-    V(-7.6, 4.6, '3V3'), V(-5.1, 5.65, 'GND'), V(-5.5, -3.7, 'GND'),
-    V(-1.2, -7.45, '3V3'), V(0.3, -7.45, 'GND'), V(7.4, -1.2, '3V3'), V(7.4, 0.3, 'GND'),
-    ...(v.decapFar ? [V(5.9, 9.45, '3V3'), V(4.8, 12.0, 'GND')] : [V(3.9, 5.95, '3V3'), V(2.8, 8.5, 'GND')]),
-    { x: 1.5, y: 5.8, net: 'GND', kind: 'blind', drill: 0.15, pad: 0.4 },
-    V(-2.05, 12.4, 'GND'), V(0.45, 12.4, 'GND'), V(-6.3, 0.4, 'NRST'),
+    ...(v.decapFar ? [V(-9.25, 7.25, '3V3'), V(-11.8, 6.2, 'GND')] : [V(-7.6, 4.6, '3V3'), V(-5.1, 5.65, 'GND')]),
+    { x: -3.3, y: 5.5, net: 'GND', kind: 'blind', drill: 0.15, pad: 0.4 },
+    V(-7.25, -1.0, '3V3'), V(-7.25, -2.5, 'GND'), V(7.05, -2.8, '3V3'), V(7.05, -4.3, 'GND'), V(2.8, -6.0, 'GND'),
+    V(-12.4, 2.85, 'GND'), V(-12.4, 0.35, 'GND'), V(-5.55, 0.4, 'NRST'), V(-3.05, 7.65, 'GND'),
+    V(-4.3, 6.55, '3V3'), V(-1.9, 11.865, '3V3'), V(-5.3, 14.2, 'GND'), V(-11.8, 12.905, 'GND'),
+    V(-13.65, 9.095, '3V3'), V(-12.6, 6.55, 'GND'),
     V(-20.9, -9, 'GND'), V(-20.9, -6.5, 'GND'), V(-24.2, 3.4, 'GND'), V(-23.2, -3.4, 'GND'), V(-23.8, 6.6, 'GND'),
     V(-14.6, 8.85, 'GND'), V(-14.2, 15.15, 'GND'), V(-11.5, 16.8, 'GND'),
     V(12.0, -9.365, 'GND'), V(12.0, -10.635, '3V3'), V(20.4, -7.3, 'GND'),
@@ -267,56 +276,72 @@ function layout(v) {
   for (const y of [17.2, 18.4]) for (const x of [-24.1, -22.9, -21.7, -20.5, -19.3, -18.1]) vias.push(V(x, y, '3V3', 'thermal'));
 
   const T = (net, w, pts, o = {}) => ({ net, w, pts, layer: 'L1', ...o });
-  const diff = { terms: ['diffpair', 'trace'] };
+  const diff = { terms: ['diffpair', 'can', 'trace'] };
+  const can = { terms: ['can', 'trace'], tag: 'corners' };
+  const i2c = { terms: ['i2c', 'trace'] };
   const xtal = { terms: ['crystal', 'trace'] };
   const decap = { terms: ['decap', 'trace'] };
+  const swd = { terms: ['trace', 'mcu'] };
   const traces = [
-    T('3V3', 0.3, [[-4.3, 2.8], [-5.8, 2.8], [-6.6, 3.6], [-6.6, 4.6]], decap),
-    T('3V3', 0.3, [[-6.6, 4.6], [-7.6, 4.6]], decap),
-    T('GND', 0.3, [[-5.1, 4.6], [-5.1, 5.65]], decap),
-    T('USB D−', 0.3, [[-25.4, 2.0], [-4.3, 2.0]], diff),
-    T('USB D+', 0.3, [[-25.4, 1.2], [-4.3, 1.2]], diff),
-    T('NRST', 0.25, [[-4.3, 0.4], [-6.3, 0.4]]),
-    T('NRST', 0.25, [[-6.3, 0.4], [-6.3, 10], [0.7, 17], [18.62, 17], [21.62, 14]], { layer: 'L4' }),
-    T('LED2', 0.25, [[-4.3, -1.2], [-7.0, -1.2], [-12.3, -6.5], [-14.25, -6.5]]),
-    T('LED1', 0.25, [[-4.3, -2.0], [-6.0, -2.0], [-13.0, -9.0], [-14.25, -9.0]]),
-    T('GND', 0.3, [[-4.3, -2.8], [-5.0, -2.8], [-5.5, -3.3], [-5.5, -3.7]]),
-    T('LED1', 0.25, [[-15.75, -9], [-18.25, -9]]),
-    T('LED2', 0.25, [[-15.75, -6.5], [-18.25, -6.5]]),
+    // VDD (pin 1) and its decoupling capacitor C1
+    ...(v.decapFar ? [
+      T('3V3', 0.3, [[-4.3, 2.8], [-5.8, 2.8], [-6.6, 3.6], [-6.6, 5.4], [-7.4, 6.2], [-9.25, 6.2]], decap),
+      T('3V3', 0.3, [[-9.25, 6.2], [-9.25, 7.25]], decap),
+      T('GND', 0.3, [[-10.75, 6.2], [-11.8, 6.2]], decap),
+    ] : [
+      T('3V3', 0.3, [[-4.3, 2.8], [-5.8, 2.8], [-6.6, 3.6], [-6.6, 4.6]], decap),
+      T('3V3', 0.3, [[-6.6, 4.6], [-7.6, 4.6]], decap),
+      T('GND', 0.3, [[-5.1, 4.6], [-5.1, 5.65]], decap),
+    ]),
+    T('GND', 0.2, [[-2.8, 4.3], [-2.8, 5.0], [-3.3, 5.5]], decap), // VSS pin 32 → blind via
+    // Crystal
+    T('OSC_IN', 0.25, [[-4.3, 2.0], [-7.75, 2.0], [-8.6, 2.85]], xtal),
+    T('OSC_OUT', 0.25, [[-4.3, 1.2], [-7.75, 1.2], [-8.6, 0.35]], xtal),
+    T('OSC_IN', 0.25, [[-8.6, 2.85], [-9.85, 2.85]], xtal),
+    T('OSC_OUT', 0.25, [[-8.6, 0.35], [-9.85, 0.35]], xtal),
+    T('GND', 0.3, [[-11.35, 2.85], [-12.4, 2.85]], xtal),
+    T('GND', 0.3, [[-11.35, 0.35], [-12.4, 0.35]], xtal),
+    // NRST → bottom layer → J2
+    T('NRST', 0.25, [[-4.3, 0.4], [-5.55, 0.4]], swd),
+    T('NRST', 0.25, [[-5.55, 0.4], [-6.35, 1.2], [-6.35, 10], [0.7, 17], [18.62, 17], [21.62, 14]], { layer: 'L4', terms: ['trace', 'mcu'] }),
+    // VDDA (pin 5) + C2
+    T('VDDA', 0.3, [[-4.3, -0.4], [-5.6, -0.4], [-6.2, -1.0]], decap),
+    T('3V3', 0.3, [[-6.2, -1.0], [-7.25, -1.0]], decap),
+    T('GND', 0.3, [[-6.2, -2.5], [-7.25, -2.5]], decap),
+    // LEDs on PA4 / PA5
+    T('PA4 · LED', 0.25, [[-2.0, -4.3], [-2.0, -5.6], [-2.9, -6.5], [-14.25, -6.5]]),
+    T('PA5 · LED', 0.25, [[-1.2, -4.3], [-1.2, -6.8], [-3.4, -9.0], [-14.25, -9.0]]),
+    T('PA5 · LED', 0.25, [[-15.75, -9], [-18.25, -9]]),
+    T('PA4 · LED', 0.25, [[-15.75, -6.5], [-18.25, -6.5]]),
     T('GND', 0.3, [[-19.75, -9], [-20.9, -9]]),
     T('GND', 0.3, [[-19.75, -6.5], [-20.9, -6.5]]),
-    T('3V3', 0.3, [[-1.2, -4.3], [-1.2, -6.4]], decap),
-    T('GND', 0.3, [[-0.4, -4.3], [-0.4, -5.4], [0.3, -6.1], [0.3, -6.4]], decap),
-    T('3V3', 0.3, [[-1.2, -6.4], [-1.2, -7.45]], decap),
-    T('GND', 0.3, [[0.3, -6.4], [0.3, -7.45]], decap),
-    T('3V3', 0.3, [[4.3, -1.2], [6.3, -1.2]], decap),
-    T('GND', 0.3, [[4.3, -0.4], [5.5, -0.4], [6.2, 0.3], [6.3, 0.3]], decap),
-    T('3V3', 0.3, [[6.3, -1.2], [7.4, -1.2]], decap),
-    T('GND', 0.3, [[6.3, 0.3], [7.4, 0.3]], decap),
-    ...(v.decapFar ? [
-      T('3V3', 0.3, [[2.8, 4.3], [2.8, 6.2], [4.8, 8.2], [4.8, 9.45]], decap),
-      T('3V3', 0.3, [[4.8, 9.45], [5.9, 9.45]], decap),
-      T('GND', 0.3, [[4.8, 10.95], [4.8, 12.0]], decap),
-    ] : [
-      T('3V3', 0.3, [[2.8, 4.3], [2.8, 5.95]], decap),
-      T('3V3', 0.3, [[2.8, 5.95], [3.9, 5.95]], decap),
-      T('GND', 0.3, [[2.8, 7.45], [2.8, 8.5]], decap),
-    ]),
-    T('GND', 0.2, [[2.0, 4.3], [2.0, 5.3], [1.5, 5.8]]),
-    T('OSC IN', 0.25, [[-1.2, 4.3], [-1.2, 6.4], [-2.05, 7.25], [-2.05, 8.2]], xtal),
-    T('OSC OUT', 0.25, [[-0.4, 4.3], [-0.4, 6.4], [0.45, 7.25], [0.45, 8.2]], xtal),
-    T('OSC IN', 0.25, [[-2.05, 8.2], [-2.05, 9.85]], xtal),
-    T('OSC OUT', 0.25, [[0.45, 8.2], [0.45, 9.85]], xtal),
-    T('GND', 0.3, [[-2.05, 11.35], [-2.05, 12.4]], xtal),
-    T('GND', 0.3, [[0.45, 11.35], [0.45, 12.4]], xtal),
-    T('SWCLK', 0.25, [[4.3, 2.0], [7.0, 2.0], [16.54, 11.54], [16.54, 14]]),
-    T('SWDIO', 0.25, [[4.3, 1.2], [8.0, 1.2], [19.08, 12.28], [19.08, 14]]),
+    // VSS pin 16, VDDIO2 pin 17 + C3
+    T('GND', 0.3, [[2.8, -4.3], [2.8, -6.0]], decap),
+    T('VDDIO2', 0.3, [[4.3, -2.8], [6.0, -2.8]], decap),
+    T('3V3', 0.3, [[6.0, -2.8], [7.05, -2.8]], decap),
+    T('GND', 0.3, [[6.0, -4.3], [7.05, -4.3]], decap),
+    // BOOT0 pull-down
+    T('BOOT0', 0.25, [[-2.0, 4.3], [-2.0, 6.15]], swd),
+    T('GND', 0.3, [[-2.0, 7.65], [-3.05, 7.65]], swd),
+    // I²C bus to U4 with pull-ups R7/R8
+    T('I2C SDA', 0.25, [[-1.2, 4.3], [-1.2, 8.8], [-1.495, 9.095], [-5.3, 9.095]], i2c),
+    T('I2C SCL', 0.25, [[-0.4, 4.3], [-0.4, 9.6], [-1.165, 10.365], [-5.3, 10.365]], i2c),
+    T('3V3', 0.3, [[-4.3, 7.595], [-4.3, 6.55]], i2c),
+    T('3V3', 0.3, [[-3.0, 11.865], [-1.9, 11.865]], i2c),
+    T('GND', 0.3, [[-5.3, 12.905], [-5.3, 14.2]], i2c),
+    T('GND', 0.3, [[-10.7, 10.365], [-10.7, 12.905], [-11.8, 12.905]], { terms: ['i2c', 'trace'] }),
+    T('3V3', 0.3, [[-10.7, 9.095], [-12.6, 9.095], [-13.65, 9.095]], decap),
+    T('GND', 0.3, [[-12.6, 7.595], [-12.6, 6.55]], decap),
+    // SWD to the programming header
+    T('SWDIO', 0.25, [[4.3, 2.0], [7.5, 2.0], [19.08, 13.58], [19.08, 14]], swd),
+    T('SWCLK', 0.25, [[4.3, 2.8], [6.0, 2.8], [16.54, 13.34], [16.54, 14]], swd),
+    // CAN TX/RX to the transceiver
     ...(v.corners90 ? [
-      T('CAN TX', 0.25, [[4.3, -2.0], [12.3, -2.0], [12.3, -8.095], [13.3, -8.095]], { tag: 'corners' }),
-      T('CAN RX', 0.25, [[4.3, -2.8], [8.0, -2.8], [8.0, -11.905], [13.3, -11.905]], { tag: 'corners' }),
+      T('CAN_TX', 0.25, [[4.3, 1.2], [10.5, 1.2], [10.5, -8.095], [13.3, -8.095]], can),
+      T('CAN_RX', 0.25, [[4.3, 0.4], [9.0, 0.4], [9.0, -11.905], [13.3, -11.905]], can),
     ] : [
-      T('CAN TX', 0.25, [[4.3, -2.0], [6.2, -2.0], [12.3, -8.1], [13.3, -8.095]], { tag: 'corners' }),
-      T('CAN RX', 0.25, [[4.3, -2.8], [5.4, -2.8], [8.0, -5.4], [8.0, -11.905], [13.3, -11.905]], { tag: 'corners' }),
+      T('CAN_TX', 0.25, [[4.3, 1.2], [7.5, 1.2], [10.5, -1.8], [10.5, -8.095], [13.3, -8.095]], can),
+      T('CAN_RX', 0.25, [[4.3, 0.4], [6.0, 0.4], [9.0, -2.6], [9.0, -11.905], [13.3, -11.905]], can),
     ]),
     T('GND', 0.3, [[13.3, -9.365], [12.0, -9.365]]),
     T('3V3', 0.3, [[13.3, -10.635], [12.0, -10.635]]),
@@ -325,6 +350,7 @@ function layout(v) {
     T('CANL', 0.3, [[18.7, -10.635], [23.0, -10.635], [23.635, -11.27], [27.5, -11.27]], diff),
     T('CANH', 0.3, [[24.6, -8.73], [24.6, -9.25]], diff),
     T('CANL', 0.3, [[24.6, -11.27], [24.6, -10.75]], diff),
+    // USB-C power input + regulator
     T('GND', 0.3, [[-25.4, 3.4], [-24.2, 3.4]]),
     T('CC', 0.25, [[-25.4, 0.4], [-23.9, 0.4], [-23.2, -0.3], [-23.2, -0.85]]),
     T('GND', 0.3, [[-23.2, -2.35], [-23.2, -3.4]]),
@@ -385,12 +411,15 @@ function distTo(o, x, y) {
 
 // Paths (plan coords) used by the return-current animation.
 export function returnPaths(v) {
-  const signal = [[-25.4, 2.0], [-4.3, 2.0]];
+  // SWCLK: the debug clock, driven by the programmer on J2 into the STM32.
+  const signal = [[16.54, 14], [16.54, 13.34], [6.0, 2.8], [4.3, 2.8]];
   const ret = v.slot
-    ? [[-4.3, 2.0], [-15.1, 2.0], [-15.1, 7.2], [-16.9, 7.2], [-16.9, 2.0], [-25.4, 2.0]]
-    : [[-4.3, 2.0], [-25.4, 2.0]];
+    ? [[4.3, 2.8], [6.0, 2.8], [10.6, 7.4], [7.7, 10.3], [8.4, 11.0], [11.3, 8.1], [16.54, 13.34], [16.54, 14]]
+    : [[4.3, 2.8], [6.0, 2.8], [16.54, 13.34], [16.54, 14]];
   return { signal, ret };
 }
+// Diagonal slot cut across the SWCLK/SWDIO traces for the return-path technique.
+const SLOT = [[8.783, 10.583], [14.783, 4.583], [14.217, 4.017], [8.217, 10.017]];
 
 const VIA_TERMS = {
   via: ['via', 'annular-ring'],
@@ -464,7 +493,7 @@ export function buildBoard(v) {
         s.holes.push(circlePath(d.x, d.y, d.pad / 2 + 0.25));
       }
     }
-    if (net === 'GND' && v.slot) s.holes.push(polyShape(rectPts(-16, 1.5, 0.8, 10), THREE.Path));
+    if (net === 'GND' && v.slot) s.holes.push(polyShape(SLOT, THREE.Path));
     const mesh = new THREE.Mesh(extrude(s, 0.05, 12), MAT.plane);
     mesh.position.y = y0;
     groups[id].add(reg(mesh, id, [term, 'antipad', 'copper-layer', 'stackup'], label));
@@ -628,14 +657,14 @@ export function buildBoard(v) {
   // ---- current-loop overlay for the decoupling technique
   if (v.showLoop) {
     const loopPts = v.decapFar
-      ? [[2.8, 4.3], [2.8, 6.2], [4.8, 8.2], [4.8, 12.0], [1.5, 5.8], [2.0, 5.3], [2.0, 4.3]]
-      : [[2.8, 4.3], [2.8, 8.5], [1.5, 5.8], [2.0, 5.3], [2.0, 4.3]];
+      ? [[-4.3, 2.8], [-5.8, 2.8], [-6.6, 3.6], [-6.6, 5.4], [-7.4, 6.2], [-11.8, 6.2], [-11.8, 6.9], [-3.3, 6.9], [-3.3, 5.5], [-2.8, 5.0], [-2.8, 4.3]]
+      : [[-4.3, 2.8], [-5.8, 2.8], [-6.6, 3.6], [-6.6, 4.6], [-5.1, 4.6], [-5.1, 5.65], [-3.3, 5.5], [-2.8, 5.0], [-2.8, 4.3]];
     const geo = new THREE.ShapeGeometry(polyShape(loopPts));
     geo.rotateX(-Math.PI / 2);
     const mesh = new THREE.Mesh(geo, MAT.loop);
     mesh.position.y = H.top + 0.05;
     mesh.renderOrder = 4;
-    groups.silkT.add(reg(mesh, 'silkT', ['decap'], `Current loop area — ${v.decapFar ? 'large (bad): more inductance, more noise' : 'small (good): low inductance'}`));
+    groups.silkT.add(reg(mesh, 'silkT', ['decap'], `Current loop area — ${v.decapFar ? 'large (bad): more inductance, more noise' : 'small (good): low inductance'}`, { noHighlight: true }));
   }
 
   return { root, groups, pickables, barrels, textures, layout: L };
@@ -676,7 +705,8 @@ function buildComponents(L, group, reg) {
           const y = c.y + 1.905 - 1.27 * k;
           parts.push(box(1.3, 0.42, 0.15, MAT.tin, c.x - 2.55, y, z), box(1.3, 0.42, 0.15, MAT.tin, c.x + 2.55, y, z));
         }
-        parts.push(cyl(0.3, 0.02, MAT.plasticBlack, c.x - 1.2, c.y + 1.7, z + 1.6));
+        const r = c.rot === 180 ? -1 : 1;
+        parts.push(cyl(0.3, 0.02, MAT.plasticBlack, c.x - 1.2 * r, c.y + 1.7 * r, z + 1.6));
         break;
       }
       case 'cap':
@@ -696,8 +726,8 @@ function buildComponents(L, group, reg) {
         break;
       }
       case 'xtal': {
-        parts.push(box(3.2, 1.5, 0.15, MAT.ceramic, c.x, c.y, z));
-        parts.push(box(3.0, 1.3, 0.6, MAT.steel, c.x, c.y, z + 0.15));
+        parts.push(box(...sw(3.2, 1.5), 0.15, MAT.ceramic, c.x, c.y, z));
+        parts.push(box(...sw(3.0, 1.3), 0.6, MAT.steel, c.x, c.y, z + 0.15));
         break;
       }
       case 'usb': {
@@ -788,16 +818,23 @@ function drawSilk(top, v, openings) {
     line([[14.2, -7.7], [17.8, -7.7]]); line([[14.2, -12.3], [17.8, -12.3]]);
     dot(13.15, -7.1, 0.22, 'pin1', 'Pin 1 marker for U3');
     text('U3', 16, -6.5, 1.0);
-    // Y1
-    line([[-2.9, 7.3], [1.3, 7.3]]); line([[-2.9, 9.1], [1.3, 9.1]]);
-    text('Y1', -4.3, 8.4, 1.0);
-    // passives
-    text('C1', -8.7, 5.9, 0.9);
-    text('C2', -0.45, -8.75, 0.9);
-    text('C3', 8.7, -0.45, 0.9);
-    if (v.decapFar) text('C4', 6.6, 10.9, 0.9); else text('C4', 4.7, 7.3, 0.9);
-    text('C5', -3.65, 10.6, 0.9);
-    text('C6', 2.05, 10.6, 0.9);
+    // Y1 + load caps
+    text('Y1', -8.6, -0.95, 0.9);
+    text('C5', -10.6, 4.0, 0.9);
+    text('C6', -10.6, -0.95, 0.9);
+    // decoupling caps
+    if (v.decapFar) text('C1', -10.6, 7.35, 0.9); else text('C1', -7.4, 5.75, 0.9);
+    text('C2', -6.2, -3.45, 0.9);
+    text('C3', 8.0, -3.55, 0.9);
+    text('C4', -14.0, 7.6, 0.9);
+    // U4 temperature sensor, BOOT0 and I²C pull-ups
+    line([[-9.5, 13.6], [-6.5, 13.6]]); line([[-9.5, 8.4], [-6.5, 8.4]]);
+    dot(-5.3, 8.3, 0.22, 'pin1', 'Pin 1 marker for U4 (it is rotated 180°)');
+    text('U4', -8, 14.6, 1.0);
+    text('R6', -3.3, 6.6, 0.8);
+    text('R7', -3.0, 12.9, 0.8);
+    text('R8', -6.0, 7.5, 0.8);
+    // regulator caps
     text('C7', -16.4, 10.25, 0.9);
     text('C8', -16.0, 16.55, 0.9);
     text('R1', -15, -10.35, 0.9);
